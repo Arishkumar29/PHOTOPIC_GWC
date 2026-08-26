@@ -660,7 +660,7 @@ export function PublicGallery({ eventData, onBack }) {
                       <img 
                         src={photoUrl} 
                         alt={`Match ${i + 1}`} 
-                        className="w-full h-auto min-h-[160px] object-cover transition-transform duration-500 group-hover:scale-105 bg-slate-100 dark:bg-zinc-800"
+                        className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                         onError={(e) => {
                           const target = e.currentTarget;
@@ -669,7 +669,7 @@ export function PublicGallery({ eventData, onBack }) {
                             const parts = target.src.split('/api/drive-proxy/');
                             const fileId = parts[1];
                             if (fileId && !target.src.includes('googleusercontent.com')) {
-                              target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1200`;
+                              target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1600`;
                               return;
                             }
                           }

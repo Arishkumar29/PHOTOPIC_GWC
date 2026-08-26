@@ -38,13 +38,25 @@ app.use(express.json({ limit: "50mb" }));
 
 // Serve static bulk photos from storage directory
 app.use("/bulk_photo", (req, res, next) => {
-  const targetPath = getBulkPhotoDir(req.path);
-  if (fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()) {
-    return res.sendFile(targetPath);
-  }
-  const rootPath = path.join(projectRoot, "bulk_photo", req.path);
-  if (fs.existsSync(rootPath) && fs.statSync(rootPath).isFile()) {
-    return res.sendFile(rootPath);
+  const rawPath = req.path;
+  let decodedPath = rawPath;
+  try {
+    decodedPath = decodeURIComponent(rawPath);
+  } catch (e) {}
+
+  const candidates = [
+    getBulkPhotoDir(decodedPath),
+    getBulkPhotoDir(rawPath),
+    path.join(projectRoot, "bulk_photo", decodedPath),
+    path.join(projectRoot, "bulk_photo", rawPath),
+    path.join(process.cwd(), "bulk_photo", decodedPath),
+    path.join(process.cwd(), "bulk_photo", rawPath)
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p) && fs.statSync(p).isFile()) {
+      return res.sendFile(path.resolve(p));
+    }
   }
   next();
 });

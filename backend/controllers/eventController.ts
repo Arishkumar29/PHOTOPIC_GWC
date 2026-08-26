@@ -240,9 +240,9 @@ export const proxyDriveImage = async (req: Request, res: Response) => {
     const { buffer, contentType } = await proxyDriveFileContent(fileId);
     res.setHeader("Content-Type", contentType);
     res.setHeader("Cache-Control", "public, max-age=86400");
-    res.send(buffer);
+    return res.send(buffer);
   } catch (err: any) {
-    console.error(`Error proxying Drive file ${fileId}:`, err);
-    res.status(500).json({ error: err.message || "Failed to proxy Drive file" });
+    console.warn(`Drive proxy stream failed for ${fileId}, redirecting directly to Google CDN:`, err?.message || err);
+    return res.redirect(`https://lh3.googleusercontent.com/d/${fileId}=w1600`);
   }
 };
