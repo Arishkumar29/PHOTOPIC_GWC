@@ -628,51 +628,58 @@ export function PublicGallery({ eventData, onBack }) {
               </motion.div>
             )}
 
-            {/* Photo grid — grayscale-to-color hover transition matching Faces Grid section */}
+            {/* Photo grid — vibrant, interactive cards with instant preview & download */}
             {!scanError && matchedPhotos && matchedPhotos.length > 0 && (
-              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 sm:gap-5 space-y-4 sm:space-y-5">
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 sm:gap-6 space-y-4 sm:space-y-6">
                 {matchedPhotos.map((photoUrl, i) => (
                   <motion.div 
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, type: 'spring', bounce: 0.2 }}
+                    transition={{ delay: i * 0.04, type: 'spring', bounce: 0.2 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-50px' }}
+                    viewport={{ once: true, margin: '-40px' }}
                     className="break-inside-avoid relative group cursor-pointer"
                     onClick={() => openLightbox(i)}
                   >
-                    <div className="relative rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-slate-100 dark:bg-zinc-800 shadow-sm group-hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]">
-                      {/* Grayscale-to-color on hover — matches Faces Grid treatment */}
+                    <div className="relative rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-zinc-800/80 shadow-md group-hover:shadow-2xl group-hover:shadow-purple-950/15 transition-all duration-300 group-hover:-translate-y-1.5 border border-purple-100/60 dark:border-zinc-800/80 group-hover:border-purple-300 dark:group-hover:border-purple-700/60">
+                      {/* Full Vibrant Photo (No Grayscale) */}
                       <img 
                         src={photoUrl} 
                         alt={`Match ${i + 1}`} 
-                        className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500 group-hover:grayscale-0"
+                        className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
                       
-                      {/* Match Badge (always visible on top left) */}
-                      <div className="absolute top-4 left-4 z-20 pointer-events-none">
-                        <span className="bg-blue-500/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full select-none shadow-md">
-                          MATCH
+                      {/* Gradient Scrim for readable badges */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                      {/* Top Left: Match Badge */}
+                      <div className="absolute top-3.5 left-3.5 z-20 pointer-events-none flex items-center gap-1.5">
+                        <span className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          MATCH #{i + 1}
                         </span>
                       </div>
 
-                      {/* Hover eye overlay for desktop view indicators */}
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 pointer-events-none">
-                        <div className="bg-white/25 backdrop-blur-md text-white p-3 rounded-full border border-white/30 shadow-md">
-                          <Eye className="w-5 h-5 text-white" />
+                      {/* Center Hover Action: Click to Zoom */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+                        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-slate-900 dark:text-zinc-50 px-4 py-2 rounded-full shadow-xl font-semibold text-xs flex items-center gap-2 border border-white/40">
+                          <Eye className="w-4 h-4 text-[#6e2b8b] dark:text-[#da7756]" />
+                          <span>Click to View &amp; Edit</span>
                         </div>
                       </div>
 
-                      {/* Download Button (always visible in bottom right) */}
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDownload(photoUrl); }}
-                        className="absolute bottom-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white p-2.5 rounded-full border border-white/25 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer z-20 shadow-md"
-                        title="Download Photo"
-                      >
-                        <Download className="w-4.5 h-4.5" />
-                      </button>
+                      {/* Bottom Right: Quick Download Button */}
+                      <div className="absolute bottom-3.5 right-3.5 z-20 flex items-center gap-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDownload(photoUrl); }}
+                          className="bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100 p-2.5 rounded-full shadow-lg border border-white/40 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group/btn"
+                          title="Download high-res photo"
+                        >
+                          <Download className="w-4 h-4 text-[#6e2b8b] dark:text-[#da7756] group-hover/btn:translate-y-0.5 transition-transform" />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
