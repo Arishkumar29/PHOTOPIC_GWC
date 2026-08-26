@@ -15,18 +15,47 @@ import { GridBackground } from './components/GridBackground';
 
 export default function App() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('event') ? 'public' : (user ? 'organizer' : 'auth');
-  });
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [publicData, setPublicData] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const eventId = params.get('event');
-    return eventId ? { eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' } : null;
+    if (eventId) {
+      return { eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' };
+    }
+    try {
+      const saved = localStorage.getItem('photopic_public_data');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
   });
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('event')) return 'public';
+    const hash = window.location.hash.replace('#', '');
+    const validTabs = ['organizer', 'events', 'create_event', 'one_qr', 'analytics', 'settings', 'public'];
+    if (validTabs.includes(hash)) return hash;
+    const savedTab = localStorage.getItem('photopic_active_tab');
+    if (savedTab && validTabs.includes(savedTab)) return savedTab;
+    return user ? 'organizer' : 'auth';
+  });
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Sync activeTab and publicData with URL and localStorage across reloads
+  useEffect(() => {
+    if (activeTab === 'public') {
+      if (publicData?.eventId) {
+        localStorage.setItem('photopic_public_data', JSON.stringify(publicData));
+        window.history.replaceState(null, '', `/?event=${publicData.eventId}`);
+      }
+    } else if (activeTab && activeTab !== 'auth') {
+      localStorage.setItem('photopic_active_tab', activeTab);
+      window.history.replaceState(null, '', `#${activeTab}`);
+    }
+  }, [activeTab, publicData]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -53,7 +82,8 @@ export default function App() {
       if (!user) {
         setActiveTab('auth');
       } else if (activeTab === 'auth') {
-        setActiveTab('organizer');
+        const savedTab = localStorage.getItem('photopic_active_tab');
+        setActiveTab(savedTab && savedTab !== 'auth' ? savedTab : 'organizer');
       }
     }
   }, [user]);

@@ -10,9 +10,17 @@ import { downloadPhotosAsZip } from '../lib/zipHelper';
 export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
   const [stream, setStream] = useState(null);
-  const [photo, setPhoto] = useState(null);
+  const [photo, setPhoto] = useState(() => {
+    return sessionStorage.getItem('photopic_selfie') || null;
+  });
   const [isScanning, setIsScanning] = useState(false);
-  const [matchedPhotos, setMatchedPhotos] = useState(null);
+  const [matchedPhotos, setMatchedPhotos] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('photopic_matched_photos');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
   const [scanError, setScanError] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const videoRef = useRef(null);
@@ -168,14 +176,16 @@ export function PublicGallery({ eventData, onBack }) {
   };
 
   const startCamera = async () => {
+    sessionStorage.removeItem('photopic_matched_photos');
+    sessionStorage.removeItem('photopic_selfie');
+    setPhoto(null);
+    setMatchedPhotos(null);
+    setScanError(null);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
       });
       setStream(mediaStream);
-      setPhoto(null);
-      setMatchedPhotos(null);
-      setScanError(null);
     } catch (err) {
       console.error('Camera error:', err);
       setScanError('Failed to access camera. Please ensure camera permissions are enabled in your browser settings.');
@@ -193,6 +203,7 @@ export function PublicGallery({ eventData, onBack }) {
       ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
       const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
       setPhoto(photoDataUrl);
+      sessionStorage.setItem('photopic_selfie', photoDataUrl);
       stopCamera();
       findMyPhotos(photoDataUrl);
     }
@@ -223,10 +234,12 @@ export function PublicGallery({ eventData, onBack }) {
         return resolveMediaUrl(m.path || m.url || '');
       }).filter(Boolean);
       setMatchedPhotos(list);
+      sessionStorage.setItem('photopic_matched_photos', JSON.stringify(list));
     } catch (err) {
       console.error(err);
       setScanError(err.message || 'An error occurred while finding photos.');
       setMatchedPhotos([]);
+      sessionStorage.removeItem('photopic_matched_photos');
     } finally {
       setIsScanning(false);
     }
