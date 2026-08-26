@@ -24,6 +24,16 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+router.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "GWC PhotoPic Backend",
+    engine: "OpenCV SFace 512-d Biometrics",
+    uptime: process.uptime(),
+    timestamp: Date.now()
+  });
+});
+
 router.post("/create-event", createEvent);
 router.get("/events", getEvents);
 router.delete("/events/:eventId", deleteEvent);
