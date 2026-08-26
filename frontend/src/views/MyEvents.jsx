@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'react-qr-code';
+import { apiFetch } from '../lib/api';
 
 export function MyEvents({ onSelectEvent }) {
   const [events, setEvents] = useState([]);
@@ -32,7 +33,7 @@ export function MyEvents({ onSelectEvent }) {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch('/api/events');
+      const res = await apiFetch('/api/events');
       const data = await res.json();
       if (data.events) setEvents(data.events);
     } catch (e) { 

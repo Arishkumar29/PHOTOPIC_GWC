@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'react-qr-code';
 import { googleSignIn } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 
 const PRESET_COVERS = [
   { id: 'celebration', name: 'Celebration', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&auto=format&fit=crop&q=80' },
@@ -219,7 +220,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
   const fetchAnalytics = async () => {
     setIsLoadingAnalytics(true);
     try {
-      const res = await fetch(`/api/analytics?period=${analyticsPeriod}`);
+      const res = await apiFetch(`/api/analytics?period=${analyticsPeriod}`);
       const data = await res.json();
       setAnalyticsData(data);
     } catch (e) {
@@ -242,7 +243,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch('/api/events');
+      const res = await apiFetch('/api/events');
       const data = await res.json();
       if (data.events) {
         setEvents(data.events);
@@ -255,7 +256,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
   const deleteEvent = async (id) => {
     if (!confirm("Delete this event gallery permanently?")) return;
     try {
-      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/events/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setEvents(events.filter(e => e.eventId !== id));
         fetchEvents();
@@ -307,7 +308,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
       const folderId = match ? match[1] : folderLink;
       const newEventId = "evt_" + Math.random().toString(36).substring(2, 9);
       
-      const response = await fetch('/api/create-event', {
+      const response = await apiFetch('/api/create-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

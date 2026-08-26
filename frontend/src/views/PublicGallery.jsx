@@ -4,6 +4,7 @@ import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, S
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { apiFetch } from '../lib/api';
 
 export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
@@ -32,7 +33,7 @@ export function PublicGallery({ eventData, onBack }) {
     if (eventData?.eventId) {
       setCurrentEvent(eventData);
     } else {
-      fetch('/api/events')
+      apiFetch('/api/events')
         .then(res => res.json())
         .then(data => {
           if (data.events && data.events.length > 0) {
@@ -47,7 +48,7 @@ export function PublicGallery({ eventData, onBack }) {
   useEffect(() => {
     const id = currentEvent?.eventId || eventData?.eventId;
     if (id) {
-      fetch(`/api/events/${id}/track-visit`, { method: 'POST' })
+      apiFetch(`/api/events/${id}/track-visit`, { method: 'POST' })
         .catch(err => console.error("Failed to track visit", err));
     }
   }, [currentEvent, eventData]);
@@ -67,7 +68,7 @@ export function PublicGallery({ eventData, onBack }) {
     try {
       const id = currentEvent?.eventId || eventData?.eventId;
       if (id) {
-        await fetch(`/api/events/${id}/track-download`, { method: 'POST' }).catch(() => {});
+        await apiFetch(`/api/events/${id}/track-download`, { method: 'POST' }).catch(() => {});
       }
 
       const response = await fetch(url);
@@ -181,7 +182,7 @@ export function PublicGallery({ eventData, onBack }) {
     setScanError(null);
     const activeEventId = currentEvent?.eventId || eventData?.eventId || 'evt_sample';
     try {
-      const response = await fetch('/api/scan-faces', {
+      const response = await apiFetch('/api/scan-faces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

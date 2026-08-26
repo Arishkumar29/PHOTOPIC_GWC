@@ -17,6 +17,24 @@ const distRoot = fs.existsSync(path.join(frontendRoot, "dist"))
   ? path.join(frontendRoot, "dist")
   : path.join(projectRoot, "dist");
 
+// ── CORS — allow Vercel frontend to call the Railway backend ──────────────────
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,   // set this on Railway to your Vercel URL
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  const origin = req.headers.origin as string;
+  if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => o && origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json({ limit: "50mb" }));
 
 // Serve static bulk photos from storage directory
