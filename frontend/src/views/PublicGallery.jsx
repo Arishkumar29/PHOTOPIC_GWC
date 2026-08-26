@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles } from 'lucide-react';
+import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
+import { downloadPhotosAsZip } from '../lib/zipHelper';
 
 export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
@@ -27,6 +28,26 @@ export function PublicGallery({ eventData, onBack }) {
   });
   const [activePreset, setActivePreset] = useState('original');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
+  const [zipProgress, setZipProgress] = useState(null);
+
+  const handleDownloadAllZip = async () => {
+    if (!matchedPhotos || matchedPhotos.length === 0 || isZipping) return;
+    setIsZipping(true);
+    setZipProgress({ current: 0, total: matchedPhotos.length });
+    try {
+      const eventTitle = currentEvent?.eventName || eventData?.eventName || 'GWC_PhotoSync';
+      const safeName = eventTitle.replace(/[^a-zA-Z0-9_-]/g, '_');
+      await downloadPhotosAsZip(matchedPhotos, `${safeName}_matched_photos.zip`, (current, total) => {
+        setZipProgress({ current, total });
+      });
+    } catch (err) {
+      console.error("ZIP download error:", err);
+    } finally {
+      setIsZipping(false);
+      setZipProgress(null);
+    }
+  };
 
   // Load active event if not supplied in props
   useEffect(() => {
@@ -512,13 +533,33 @@ export function PublicGallery({ eventData, onBack }) {
                   </div>
                 </div>
                 
-                <button 
-                  onClick={startCamera}
-                  className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-semibold px-6 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 shrink-0 cursor-pointer"
-                >
-                  <RefreshCcw className="w-4 h-4" />
-                  Retake Selfie
-                </button>
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  <button 
+                    onClick={handleDownloadAllZip}
+                    disabled={isZipping}
+                    className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-750 font-bold text-sm px-5 py-3 rounded-full border border-slate-200/80 dark:border-zinc-700 shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isZipping ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-[#6e2b8b] animate-spin" />
+                        <span>Zipping {zipProgress ? `(${zipProgress.current}/${zipProgress.total})` : '...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <FolderArchive className="w-4 h-4 text-[#da7756]" />
+                        <span>Download ZIP ({matchedPhotos.length})</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button 
+                    onClick={startCamera}
+                    className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-semibold text-sm px-6 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 cursor-pointer"
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                    <span>Retake Selfie</span>
+                  </button>
+                </div>
               </div>
             )}
 

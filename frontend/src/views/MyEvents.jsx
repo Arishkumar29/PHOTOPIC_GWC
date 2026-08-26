@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check } from 'lucide-react';
+import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check, FolderArchive, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'react-qr-code';
-import { apiFetch } from '../lib/api';
+import { apiFetch, resolveMediaUrl } from '../lib/api';
+import { downloadPhotosAsZip } from '../lib/zipHelper';
 
 export function MyEvents({ onSelectEvent }) {
   const [events, setEvents] = useState([]);
@@ -12,7 +13,28 @@ export function MyEvents({ onSelectEvent }) {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [qrModalEvent, setQrModalEvent] = useState(null);
+  const [zippingEventId, setZippingEventId] = useState(null);
+  const [zipProgress, setZipProgress] = useState(null);
   const sortRef = useRef(null);
+
+  const handleDownloadEventZip = async (eventObj) => {
+    const photos = eventObj.photos || [];
+    if (photos.length === 0 || zippingEventId) return;
+    setZippingEventId(eventObj.eventId);
+    setZipProgress({ current: 0, total: photos.length });
+    try {
+      const resolvedUrls = photos.map(p => resolveMediaUrl(p));
+      const safeName = (eventObj.eventName || 'event').replace(/[^a-zA-Z0-9_-]/g, '_');
+      await downloadPhotosAsZip(resolvedUrls, `${safeName}_all_photos.zip`, (current, total) => {
+        setZipProgress({ current, total });
+      });
+    } catch (err) {
+      console.error("Failed to download event zip:", err);
+    } finally {
+      setZippingEventId(null);
+      setZipProgress(null);
+    }
+  };
 
   useEffect(() => { 
     fetchEvents(); 
@@ -378,19 +400,39 @@ export function MyEvents({ onSelectEvent }) {
                 </button>
               </div>
 
-              {/* Direct Open Selfie Page button */}
-              <button
-                onClick={() => {
-                  const ev = qrModalEvent;
-                  setQrModalEvent(null);
-                  onSelectEvent(ev);
-                }}
-                className="w-full bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-3.5 rounded-full transition-all shadow-lg shadow-purple-950/20 text-sm flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Camera className="w-4 h-4" />
-                <span>Open Selfie Page</span>
-                <ExternalLink className="w-4 h-4" />
-              </button>
+              {/* Actions: Download ZIP & Open Selfie Page */}
+              <div className="space-y-2.5">
+                <button
+                  onClick={() => handleDownloadEventZip(qrModalEvent)}
+                  disabled={zippingEventId === qrModalEvent.eventId}
+                  className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 font-bold py-3 rounded-full transition-all text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-slate-200/80 dark:border-zinc-700"
+                >
+                  {zippingEventId === qrModalEvent.eventId ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-[#6e2b8b] animate-spin" />
+                      <span>Zipping {zipProgress ? `(${zipProgress.current}/${zipProgress.total})` : '...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FolderArchive className="w-4 h-4 text-[#da7756]" />
+                      <span>Download All Photos (ZIP)</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    const ev = qrModalEvent;
+                    setQrModalEvent(null);
+                    onSelectEvent(ev);
+                  }}
+                  className="w-full bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-3.5 rounded-full transition-all shadow-lg shadow-purple-950/20 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Open Selfie Page</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

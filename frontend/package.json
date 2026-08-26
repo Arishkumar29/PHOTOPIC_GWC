@@ -10,6 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "jszip": "^3.10.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.43.0",
     "react": "^19.0.1",
