@@ -194,7 +194,8 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
   const [folderLink, setFolderLink] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [eventId, setEventId] = useState('');
-  
+  const [syncError, setSyncError] = useState('');
+
   // Field errors
   const [errors, setErrors] = useState({});
   const wizardFileRef = useRef(null);
@@ -297,6 +298,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
   const handleDriveSync = async () => {
     if (!folderLink) return;
     setIsSyncing(true);
+    setSyncError('');
     try {
       const authResult = await googleSignIn();
       if (!authResult) throw new Error("Google Authentication failed");
@@ -317,9 +319,10 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
           coverImage: coverImage
         })
       });
-      
+
       if (!response.ok) {
-        throw new Error("Failed to register sync event");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || errData?.message || 'Unable to connect to the server. Please check your setup.');
       }
       
       setEventId(newEventId);
@@ -328,7 +331,7 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
     } catch (err) {
       if (err?.code === 'auth/popup-closed-by-user') return;
       console.error(err);
-      alert(err.message || "Failed to sync.");
+      setSyncError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSyncing(false);
     }
@@ -840,34 +843,44 @@ export function Organizer({ initialView = 'dashboard', onOpenPublicView }) {
 
             {/* Wizard footer — rounded-full pill buttons matching landing page primary/secondary */}
             {step < 3 && (
-              <div className="absolute bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-slate-100 dark:border-zinc-800/40 px-6 py-4 flex justify-between z-20 items-center rounded-b-[2.5rem]">
-                {step === 1 ? (
-                  <div className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Fill event fields to proceed</div>
-                ) : (
-                  <button 
-                    onClick={() => setStep(1)}
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-semibold rounded-full transition-all text-sm cursor-pointer"
-                  >
-                    Back
-                  </button>
+              <div className="absolute bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-slate-100 dark:border-zinc-800/40 px-6 py-4 flex flex-col gap-2.5 z-20 rounded-b-[2.5rem]">
+                {/* Inline sync error banner */}
+                {syncError && (
+                  <div className="flex items-start gap-2.5 px-4 py-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-2xl text-xs font-semibold text-red-600 dark:text-red-400">
+                    <span className="shrink-0 mt-0.5">⚠️</span>
+                    <span>{syncError}</span>
+                    <button onClick={() => setSyncError('')} className="ml-auto text-red-400 hover:text-red-600 cursor-pointer shrink-0 font-bold leading-none">✕</button>
+                  </div>
                 )}
-                
-                {step === 1 ? (
-                  <button 
-                    onClick={handleNextStep1}
-                    className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 cursor-pointer"
-                  >
-                    Next: Connect Drive <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleDriveSync}
-                    disabled={!folderLink || isSyncing}
-                    className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    {isSyncing ? <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</> : <>Next: Review &amp; Publish <ArrowRight className="w-4 h-4" /></>}
-                  </button>
-                )}
+                <div className="flex justify-between items-center">
+                  {step === 1 ? (
+                    <div className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Fill event fields to proceed</div>
+                  ) : (
+                    <button 
+                      onClick={() => setStep(1)}
+                      className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-semibold rounded-full transition-all text-sm cursor-pointer"
+                    >
+                      Back
+                    </button>
+                  )}
+                  
+                  {step === 1 ? (
+                    <button 
+                      onClick={handleNextStep1}
+                      className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 cursor-pointer"
+                    >
+                      Next: Connect Drive <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleDriveSync}
+                      disabled={!folderLink || isSyncing}
+                      className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                    >
+                      {isSyncing ? <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</> : <>Next: Review &amp; Publish <ArrowRight className="w-4 h-4" /></>}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>
