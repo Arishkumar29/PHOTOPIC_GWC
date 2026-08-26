@@ -19,6 +19,9 @@ RUN apt-get update && apt-get install -y \
 # Make `python` point to python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
+# Set environment variable to suppress hardlink warning in container environments
+ENV UV_LINK_MODE=copy
+
 # Install Python dependencies
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
