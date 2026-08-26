@@ -13,7 +13,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const projectRoot = getProjectRootDir();
 const frontendRoot = path.join(projectRoot, "frontend");
-const distRoot = path.join(projectRoot, "dist");
+const distRoot = fs.existsSync(path.join(frontendRoot, "dist"))
+  ? path.join(frontendRoot, "dist")
+  : path.join(projectRoot, "dist");
 
 app.use(express.json({ limit: "50mb" }));
 
