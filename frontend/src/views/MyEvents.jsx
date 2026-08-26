@@ -8,7 +8,6 @@ import { downloadPhotosAsZip } from '../lib/zipHelper';
 export function MyEvents({ onSelectEvent }) {
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSubTab, setActiveSubTab] = useState('All');
   const [sortBy, setSortBy] = useState('Newest');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
@@ -80,11 +79,8 @@ export function MyEvents({ onSelectEvent }) {
 
   const filteredEvents = events
     .filter(e => {
-      const s = e.eventName.toLowerCase().includes(searchTerm.toLowerCase()) || e.orgName.toLowerCase().includes(searchTerm.toLowerCase());
-      if (activeSubTab === 'All') return s;
-      if (activeSubTab === 'Live') return s && e.folderId !== 'local_upload';
-      if (activeSubTab === 'Draft') return s && e.folderId === 'local_upload';
-      return s;
+      const q = searchTerm.toLowerCase();
+      return e.eventName.toLowerCase().includes(q) || (e.orgName || '').toLowerCase().includes(q);
     })
     .sort((a, b) => {
       if (sortBy === 'Newest') return b.eventId.localeCompare(a.eventId);
@@ -100,8 +96,6 @@ export function MyEvents({ onSelectEvent }) {
   ];
 
   const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || 'Newest first';
-
-  const subTabs = ['All', 'Live', 'Draft'];
 
   return (
     <motion.div
@@ -186,40 +180,6 @@ export function MyEvents({ onSelectEvent }) {
             </AnimatePresence>
           </div>
         </div>
-
-        {/* Sub-tabs */}
-        <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-800/60 overflow-x-auto scrollbar-none">
-          {subTabs.map(tab => {
-            const isActive = activeSubTab === tab;
-            const counts = {
-              All: events.length,
-              Live: events.filter(e => e.folderId !== 'local_upload').length,
-              Draft: events.filter(e => e.folderId === 'local_upload').length,
-            };
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveSubTab(tab)}
-                className={`relative px-4 py-2.5 text-sm font-semibold tracking-tight shrink-0 transition-all -mb-px border-b-2 cursor-pointer ${
-                  isActive
-                    ? 'text-[#6e2b8b] dark:text-[#da7756] border-[#6e2b8b] dark:border-[#da7756]'
-                    : 'text-slate-400 dark:text-zinc-500 border-transparent hover:opacity-60'
-                }`}
-              >
-                {tab}
-                {counts[tab] > 0 && (
-                  <span className={`ml-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    isActive 
-                      ? 'bg-purple-100 dark:bg-purple-950/60 text-[#6e2b8b] dark:text-[#da7756]' 
-                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400'
-                  }`}>
-                    {counts[tab]}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* ─── EVENT GRID ──────────────────────────────────────────── */}
@@ -246,8 +206,6 @@ export function MyEvents({ onSelectEvent }) {
         ) : (
           <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredEvents.map((e, i) => {
-              const isDraft = e.folderId === 'local_upload';
-
               return (
                 <motion.div
                   layout
@@ -267,7 +225,7 @@ export function MyEvents({ onSelectEvent }) {
                       <img
                         src={e.coverImage}
                         alt={e.eventName}
-                        className="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -283,13 +241,10 @@ export function MyEvents({ onSelectEvent }) {
                       </span>
                     </div>
 
-                    {/* Status badge */}
-                    <span className={`absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full border backdrop-blur-sm ${
-                      isDraft
-                        ? 'bg-black/40 text-white border-white/20'
-                        : 'bg-white/90 text-slate-900 border-white/60'
-                    }`}>
-                      {isDraft ? 'Draft' : 'Live'}
+                    {/* Live Status badge */}
+                    <span className="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/90 text-white border border-emerald-400/40 backdrop-blur-md shadow-sm flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      Live
                     </span>
 
                     {/* Photo count pill */}
