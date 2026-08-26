@@ -148,15 +148,18 @@ export const scanFaces = async (req: Request, res: Response) => {
     }));
 
     let matchedUrls: string[] = [];
-    if (event.folderId === 'local_upload') {
-      matchedUrls = resultMatches.map((m: any) => `/bulk_photo/${eventId}/${m.name}`);
-    } else {
-      matchedUrls = resultMatches.map((m: any) => {
-        const matchFile = event.driveFiles?.find(f => f.name === m.name);
-        if (!matchFile) return null;
-        return `/api/drive-proxy/${matchFile.id}`;
-      }).filter(Boolean) as string[];
-    }
+    matchedUrls = resultMatches.map((m: any) => {
+      // 1. If file exists in local event cache directory, serve directly (fast & reliable)
+      const localFilePath = path.join(scanBulkDir, m.name);
+      if (fs.existsSync(localFilePath) && fs.statSync(localFilePath).size > 100) {
+        return `/bulk_photo/${eventId}/${encodeURIComponent(m.name)}`;
+      }
+
+      // 2. Otherwise route via Drive proxy
+      const matchFile = event.driveFiles?.find(f => f.name === m.name);
+      if (!matchFile) return null;
+      return `/api/drive-proxy/${matchFile.id}`;
+    }).filter(Boolean) as string[];
 
     if (scanTempDir && fs.existsSync(scanTempDir)) {
       removeDirSync(scanTempDir);

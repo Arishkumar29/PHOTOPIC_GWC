@@ -102,21 +102,36 @@ export async function downloadDriveFiles(targetFiles: DriveEntry[], eventDir: st
 }
 
 export async function proxyDriveFileContent(fileId: string): Promise<{ buffer: Buffer; contentType: string }> {
-  const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-  const fileRes = await fetch(downloadUrl, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
-  });
+  const urlsToTry = [
+    `https://lh3.googleusercontent.com/d/${fileId}=w1600`,
+    `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`,
+    `https://drive.google.com/uc?export=download&id=${fileId}`
+  ];
 
-  if (!fileRes.ok) {
-    throw new Error(`Failed to download image from Google Drive (Status ${fileRes.status})`);
+  for (const url of urlsToTry) {
+    try {
+      const fileRes = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Referer": "https://drive.google.com/",
+          "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+        }
+      });
+
+      if (fileRes.ok) {
+        const contentType = fileRes.headers.get("content-type") || "image/jpeg";
+        const arrayBuffer = await fileRes.arrayBuffer();
+        if (arrayBuffer.byteLength > 100) {
+          return {
+            buffer: Buffer.from(arrayBuffer),
+            contentType
+          };
+        }
+      }
+    } catch (err) {
+      // try next source
+    }
   }
 
-  const contentType = fileRes.headers.get("content-type") || "image/jpeg";
-  const arrayBuffer = await fileRes.arrayBuffer();
-  return {
-    buffer: Buffer.from(arrayBuffer),
-    contentType
-  };
+  throw new Error(`Failed to download image from Google Drive for file ${fileId}`);
 }

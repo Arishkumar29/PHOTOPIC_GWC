@@ -643,12 +643,29 @@ export function PublicGallery({ eventData, onBack }) {
                     onClick={() => openLightbox(i)}
                   >
                     <div className="relative rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-zinc-800/80 shadow-md group-hover:shadow-2xl group-hover:shadow-purple-950/15 transition-all duration-300 group-hover:-translate-y-1.5 border border-purple-100/60 dark:border-zinc-800/80 group-hover:border-purple-300 dark:group-hover:border-purple-700/60">
-                      {/* Full Vibrant Photo (No Grayscale) */}
+                      {/* Full Vibrant Photo with Auto-Recovery */}
                       <img 
                         src={photoUrl} 
                         alt={`Match ${i + 1}`} 
-                        className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-auto min-h-[160px] object-cover transition-transform duration-500 group-hover:scale-105 bg-slate-100 dark:bg-zinc-800"
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          // If drive proxy endpoint failed, retry with direct Google CDN
+                          if (target.src.includes('/api/drive-proxy/')) {
+                            const parts = target.src.split('/api/drive-proxy/');
+                            const fileId = parts[1];
+                            if (fileId && !target.src.includes('googleusercontent.com')) {
+                              target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1200`;
+                              return;
+                            }
+                          }
+                          // Fallback: hide unrecoverable corrupted image card smoothly
+                          const card = target.closest('.break-inside-avoid');
+                          if (card) {
+                            card.style.display = 'none';
+                          }
+                        }}
                       />
                       
                       {/* Gradient Scrim for readable badges */}
@@ -747,6 +764,15 @@ export function PublicGallery({ eventData, onBack }) {
                   alt="Fullscreen view" 
                   style={{ filter: getFilterString() }}
                   className="max-h-full max-w-full object-contain rounded-2xl shadow-2xl transition-all duration-150"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src.includes('/api/drive-proxy/')) {
+                      const fileId = target.src.split('/api/drive-proxy/')[1];
+                      if (fileId && !target.src.includes('googleusercontent.com')) {
+                        target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1600`;
+                      }
+                    }
+                  }}
                 />
               </div>
 
