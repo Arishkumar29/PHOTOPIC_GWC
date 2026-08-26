@@ -1,6 +1,17 @@
 // Central API helper with seamless local fallback for Vercel static deployments
 const BASE = import.meta.env.VITE_API_URL ?? '';
 
+/**
+ * Resolves media / image URLs so relative paths like /bulk_photo are properly routed to Railway in production
+ */
+export function resolveMediaUrl(pathOrUrl: string): string {
+  if (!pathOrUrl) return '';
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('data:')) {
+    return pathOrUrl;
+  }
+  return BASE ? `${BASE}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}` : pathOrUrl;
+}
+
 // Default sample event for fresh sessions
 const DEFAULT_EVENTS = [
   {

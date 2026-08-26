@@ -4,7 +4,7 @@ import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, S
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { apiFetch } from '../lib/api';
+import { apiFetch, resolveMediaUrl } from '../lib/api';
 
 export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
@@ -196,7 +196,12 @@ export function PublicGallery({ eventData, onBack }) {
         throw new Error(data.error || 'Failed to scan photos');
       }
       
-      setMatchedPhotos(data.matches || []);
+      const rawMatches = data.matches || [];
+      const list = rawMatches.map((m) => {
+        if (typeof m === 'string') return resolveMediaUrl(m);
+        return resolveMediaUrl(m.path || m.url || '');
+      }).filter(Boolean);
+      setMatchedPhotos(list);
     } catch (err) {
       console.error(err);
       setScanError(err.message || 'An error occurred while finding photos.');
