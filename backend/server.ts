@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
 import "dotenv/config";
 
 import eventRoutes from "./routes/eventRoutes";
@@ -60,6 +59,7 @@ async function startServer() {
   
   if (process.env.NODE_ENV !== "production" && hasFrontendModules) {
     try {
+      const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         root: frontendRoot,
         configFile: path.join(frontendRoot, "vite.config.js"),
