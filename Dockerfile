@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────
-# GWC PhotoPic Backend — Railway Dockerfile
+# GWC PhotoPic Backend — Dockerfile (Render / Railway)
 # Node.js 20 + Python 3.11 + OpenCV (headless)
 # ─────────────────────────────────────────────
 FROM node:20-slim
@@ -19,11 +19,9 @@ RUN apt-get update && apt-get install -y \
 # Make `python` point to python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
-# Set environment variables for production API deployment
+# Set environment variables for Python pip install
 ENV UV_LINK_MODE=copy
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-ENV NODE_ENV=production
-ENV PORT=3000
 
 # Install Python dependencies
 COPY requirements.txt ./
@@ -32,14 +30,16 @@ RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 # Set working directory
 WORKDIR /app
 
-# Copy everything
+# Copy root repository files
 COPY . .
 
 # Install Node.js backend dependencies
-RUN npm install --prefix backend
+WORKDIR /app/backend
+RUN npm install
 
-# Expose port
+WORKDIR /app
+ENV PORT=3000
 EXPOSE 3000
 
-# Start the backend
-CMD ["npm", "run", "dev", "--prefix", "backend"]
+# Start the backend API server
+CMD ["npx", "tsx", "backend/server.ts"]
