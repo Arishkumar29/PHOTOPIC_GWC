@@ -56,44 +56,69 @@ app.use("/api", analyticsRoutes);
 app.use("/api", scanRoutes);
 
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      root: frontendRoot,
-      configFile: path.join(frontendRoot, "vite.config.js"),
-      server: { middlewareMode: true },
-      appType: "custom",
-    });
-    app.use(vite.middlewares);
+  const hasFrontendModules = fs.existsSync(path.join(frontendRoot, "node_modules", "vite"));
+  
+  if (process.env.NODE_ENV !== "production" && hasFrontendModules) {
+    try {
+      const vite = await createViteServer({
+        root: frontendRoot,
+        configFile: path.join(frontendRoot, "vite.config.js"),
+        server: { middlewareMode: true },
+        appType: "custom",
+      });
+      app.use(vite.middlewares);
 
-    app.get("*", async (req, res, next) => {
-      // Never return index.html for static assets, JavaScript scripts, or Vite internal requests
-      if (req.path.startsWith("/@") || req.path.startsWith("/node_modules") || req.path.match(/\.(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|map)$/)) {
+      app.get("*", async (req, res, next) => {
+        // Never return index.html for static assets, JavaScript scripts, or Vite internal requests
+        if (req.path.startsWith("/@") || req.path.startsWith("/node_modules") || req.path.match(/\.(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|map)$/)) {
+          return next();
+        }
+
+        const url = req.originalUrl;
+        try {
+          const indexPath = path.join(frontendRoot, "index.html");
+          if (!fs.existsSync(indexPath)) {
+            return res.status(404).send("index.html not found");
+          }
+          let template = fs.readFileSync(indexPath, "utf-8");
+          template = await vite.transformIndexHtml(url, template);
+          res.status(200).set({ "Content-Type": "text/html" }).end(template);
+        } catch (e) {
+          vite.ssrFixStacktrace(e as Error);
+          next(e);
+        }
+      });
+    } catch (err) {
+      console.log("Vite dev server bypassed. Running in standalone API mode.");
+    }
+  } else {
+    // Standalone API server mode (for Render/Railway production)
+    if (fs.existsSync(distRoot)) {
+      app.use(express.static(distRoot));
+    }
+
+    app.get("/", (req, res) => {
+      res.json({
+        status: "ok",
+        service: "GWC PhotoPic Backend API",
+        message: "API Server running. Frontend is hosted on Vercel.",
+        endpoints: ["/api/events", "/api/create-event", "/api/scan-faces", "/api/analytics"]
+      });
+    });
+
+    app.get("*", (req, res, next) => {
+      if (req.path.startsWith("/api") || req.path.startsWith("/bulk_photo")) {
         return next();
       }
-
-      const url = req.originalUrl;
-      try {
-        const indexPath = path.join(frontendRoot, "index.html");
-        if (!fs.existsSync(indexPath)) {
-          return res.status(404).send("index.html not found");
-        }
-        let template = fs.readFileSync(indexPath, "utf-8");
-        template = await vite.transformIndexHtml(url, template);
-        res.status(200).set({ "Content-Type": "text/html" }).end(template);
-      } catch (e) {
-        vite.ssrFixStacktrace(e as Error);
-        next(e);
-      }
-    });
-  } else {
-    app.use(express.static(distRoot));
-
-    app.get("*", (req, res) => {
       const indexPath = path.join(distRoot, "index.html");
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
-        res.status(404).send("index.html not found");
+        res.json({
+          status: "ok",
+          service: "GWC PhotoPic Backend API",
+          message: "API Server running. Frontend is hosted on Vercel."
+        });
       }
     });
   }

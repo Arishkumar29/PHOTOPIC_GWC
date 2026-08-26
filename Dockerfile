@@ -19,9 +19,11 @@ RUN apt-get update && apt-get install -y \
 # Make `python` point to python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
-# Set environment variables for Debian Python pip install
+# Set environment variables for production API deployment
 ENV UV_LINK_MODE=copy
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ENV NODE_ENV=production
+ENV PORT=3000
 
 # Install Python dependencies
 COPY requirements.txt ./
