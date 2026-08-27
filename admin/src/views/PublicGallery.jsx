@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
 import { downloadPhotosAsZip } from '../lib/zipHelper';
 
@@ -362,16 +361,16 @@ export function PublicGallery({ eventData, onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 font-sans selection:bg-slate-200 text-slate-900 dark:text-zinc-50">
+    <div className="min-h-screen bg-white font-sans selection:bg-slate-200 text-slate-900">
       
-      {/* Header — matches landing nav style exactly */}
-      <header className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border-b border-slate-100 dark:border-zinc-800/40 sticky top-0 z-40">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {onBack && (
               <button 
                 onClick={onBack}
-                className="px-3.5 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800 shadow-sm"
+                className="px-3.5 py-1.5 rounded-full hover:bg-slate-100 text-slate-700 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 shadow-sm"
                 title="Back to My Events"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -382,10 +381,9 @@ export function PublicGallery({ eventData, onBack }) {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{activeEvent?.eventName || eventData?.eventName || 'Event Gallery'}</div>
-              <div className="text-xs font-medium text-slate-500 dark:text-zinc-400">by {activeEvent?.orgName || eventData?.orgName || 'Organizer'}</div>
+              <div className="text-sm font-semibold text-slate-900">{activeEvent?.eventName || eventData?.eventName || 'Event Gallery'}</div>
+              <div className="text-xs font-medium text-slate-500">by {activeEvent?.orgName || eventData?.orgName || 'Organizer'}</div>
             </div>
-            <ThemeToggle />
           </div>
         </div>
       </header>
