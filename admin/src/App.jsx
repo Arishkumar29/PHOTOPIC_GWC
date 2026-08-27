@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Organizer } from './views/Organizer';
 import { AuthView } from './views/AuthView';
 import { Settings } from './views/Settings';
+import { LivePreview } from './views/LivePreview';
 import { Menu, X, ChevronDown, LogOut, Settings as SettingsIcon, Shield } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { Sidebar } from './components/Sidebar';
@@ -13,9 +14,11 @@ import { GridBackground } from './components/GridBackground';
 export default function App() {
   const { user, logout } = useAuth();
 
+  const [previewEventId, setPreviewEventId] = useState('');
+
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '');
-    const validTabs = ['organizer', 'create_event', 'analytics', 'settings', 'auth'];
+    const validTabs = ['organizer', 'create_event', 'preview', 'analytics', 'settings', 'auth'];
     if (validTabs.includes(hash)) return hash;
     return 'organizer';
   });
@@ -28,7 +31,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash.replace('#', '');
-      const validTabs = ['organizer', 'create_event', 'analytics', 'settings', 'auth'];
+      const validTabs = ['organizer', 'create_event', 'preview', 'analytics', 'settings', 'auth'];
       if (hash && validTabs.includes(hash)) {
         setActiveTab(hash);
       } else {
@@ -75,24 +78,49 @@ export default function App() {
     }
   };
 
+  const handleOpenPreviewForEvent = (eventObj) => {
+    if (eventObj?.eventId) {
+      setPreviewEventId(eventObj.eventId);
+    }
+    setActiveTab('preview');
+  };
+
   const renderDashboardContent = () => {
     switch (activeTab) {
       case 'organizer':
         return (
           <PageTransition key="organizer-dash">
-            <Organizer initialView="dashboard" onNavigate={(tab) => setActiveTab(tab)} />
+            <Organizer 
+              initialView="dashboard" 
+              onNavigate={(tab) => setActiveTab(tab)} 
+              onOpenPreview={handleOpenPreviewForEvent}
+            />
           </PageTransition>
         );
       case 'create_event':
         return (
           <PageTransition key="create-event-dash">
-            <Organizer initialView="create" onNavigate={(tab) => setActiveTab(tab)} />
+            <Organizer 
+              initialView="create" 
+              onNavigate={(tab) => setActiveTab(tab)} 
+              onOpenPreview={handleOpenPreviewForEvent}
+            />
+          </PageTransition>
+        );
+      case 'preview':
+        return (
+          <PageTransition key="preview-dash">
+            <LivePreview defaultEventId={previewEventId} />
           </PageTransition>
         );
       case 'analytics':
         return (
           <PageTransition key="analytics-dash">
-            <Organizer initialView="analytics" onNavigate={(tab) => setActiveTab(tab)} />
+            <Organizer 
+              initialView="analytics" 
+              onNavigate={(tab) => setActiveTab(tab)} 
+              onOpenPreview={handleOpenPreviewForEvent}
+            />
           </PageTransition>
         );
       case 'settings':
@@ -104,7 +132,11 @@ export default function App() {
       default:
         return (
           <PageTransition key="default-dash">
-            <Organizer initialView="dashboard" onNavigate={(tab) => setActiveTab(tab)} />
+            <Organizer 
+              initialView="dashboard" 
+              onNavigate={(tab) => setActiveTab(tab)} 
+              onOpenPreview={handleOpenPreviewForEvent}
+            />
           </PageTransition>
         );
     }
@@ -114,6 +146,7 @@ export default function App() {
     switch (activeTab) {
       case 'organizer': return 'Dashboard';
       case 'create_event': return 'Create Event';
+      case 'preview': return 'Live User Preview';
       case 'analytics': return 'Analytics';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
@@ -246,16 +279,6 @@ export default function App() {
           <div>
             {renderDashboardContent()}
           </div>
-          
-          <footer className="mt-16 pt-8 border-t border-slate-100 text-xs text-slate-400 font-medium flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>GWC PhotoSync Engine 1.0</span>
-            </div>
-            <div>
-              &copy; {new Date().getFullYear()} GWC DATA.AI. All rights reserved.
-            </div>
-          </footer>
         </div>
       </main>
     </div>

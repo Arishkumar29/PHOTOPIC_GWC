@@ -159,7 +159,7 @@ function CustomAreaChart({ timeline }) {
   );
 }
 
-export function Organizer({ initialView = 'dashboard', onNavigate }) {
+export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview }) {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState(initialView);
 
@@ -404,8 +404,12 @@ export function Organizer({ initialView = 'dashboard', onNavigate }) {
   const publicLink = eventId ? `${userAppUrl}/?event=${eventId}` : '';
 
   const handleOpenPublicView = (e) => {
-    const targetUrl = `${userAppUrl}/?event=${e.eventId}`;
-    window.open(targetUrl, '_blank');
+    if (onOpenPreview) {
+      onOpenPreview(e);
+    } else {
+      const targetUrl = `${userAppUrl}/?event=${e.eventId}`;
+      window.open(targetUrl, '_blank');
+    }
   };
 
   return (

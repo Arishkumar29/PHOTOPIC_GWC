@@ -1,4 +1,4 @@
-import { Home, PlusCircle, BarChart3, Settings, ShieldCheck } from 'lucide-react';
+import { Home, PlusCircle, BarChart3, Settings, Eye } from 'lucide-react';
 import { Logo } from './Logo';
 import { motion } from 'motion/react';
 
@@ -6,6 +6,7 @@ export function Sidebar({ activeTab, setActiveTab, mobileMenuOpen, setMobileMenu
   const adminNavItems = [
     { id: 'organizer', icon: Home, label: 'Dashboard' },
     { id: 'create_event', icon: PlusCircle, label: 'Create Event' },
+    { id: 'preview', icon: Eye, label: 'Live Preview' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
@@ -13,19 +14,14 @@ export function Sidebar({ activeTab, setActiveTab, mobileMenuOpen, setMobileMenu
   return (
     <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl border-r border-slate-100 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:shrink-0 flex flex-col justify-between py-8 px-5 h-full ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       
-      {/* Top: Logo */}
+      {/* Top: Logo & Navigation */}
       <div className="flex flex-col gap-8">
         <div className="px-2">
           <Logo onClick={() => { setActiveTab('organizer'); setMobileMenuOpen(false); }} />
         </div>
         
         {/* Navigation Group */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#6e2b8b]" />
-            <span>Admin Management</span>
-          </div>
-
+        <div className="space-y-1">
           <nav className="flex flex-col gap-1 relative">
             {adminNavItems.map((item) => {
               const isActive = activeTab === item.id || (item.id === 'organizer' && activeTab === 'dashboard');
@@ -66,14 +62,7 @@ export function Sidebar({ activeTab, setActiveTab, mobileMenuOpen, setMobileMenu
         </div>
       </div>
 
-      {/* Footer Info */}
-      <div className="px-3 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1">
-        <div className="font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>GWC PhotoSync AI</span>
-        </div>
-        <p className="text-slate-400 text-[11px]">OpenCV Biometric Engine</p>
-      </div>
+      <div />
     </aside>
   );
 }
