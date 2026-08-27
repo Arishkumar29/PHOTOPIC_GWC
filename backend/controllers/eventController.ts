@@ -76,9 +76,9 @@ function loadEventsFromDisk() {
 loadEventsFromDisk();
 
 export const createEvent = async (req: Request, res: Response) => {
-  const { eventId, folderId, accessToken, orgName, eventName, coverImage } = req.body;
-  if (!eventId || !folderId || !accessToken) {
-    return res.status(400).json({ error: "Missing required parameters" });
+  const { eventId, folderId, accessToken = "default_token", orgName, eventName, coverImage } = req.body;
+  if (!eventId || !folderId) {
+    return res.status(400).json({ error: "Missing required parameters: eventId and folderId are required" });
   }
 
   try {

@@ -375,8 +375,8 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
         body: JSON.stringify({
           eventId: newEventId,
           folderId,
-          accessToken: authResult.accessToken,
-          orgName: orgName || user?.displayName || 'Privapic host',
+          accessToken: authResult?.accessToken || 'public_sync_token',
+          orgName: orgName || user?.displayName || 'GWC PhotoSync host',
           eventName: eventName,
           coverImage: coverImage
         })
