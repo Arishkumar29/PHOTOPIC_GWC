@@ -260,12 +260,14 @@ export function PublicGallery({ eventData, onBack }) {
 
   const openLightbox = (index) => {
     setLightboxIndex(index);
+    setIsEditing(false);
     resetFilters();
     document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setLightboxIndex(null);
+    setIsEditing(false);
     resetFilters();
     document.body.style.overflow = 'auto';
   };
@@ -274,6 +276,7 @@ export function PublicGallery({ eventData, onBack }) {
     e?.stopPropagation();
     if (lightboxIndex !== null && matchedPhotos && matchedPhotos.length > 0) {
       setLightboxIndex((lightboxIndex + 1) % matchedPhotos.length);
+      setIsEditing(false);
       resetFilters();
     }
   };
@@ -282,6 +285,7 @@ export function PublicGallery({ eventData, onBack }) {
     e?.stopPropagation();
     if (lightboxIndex !== null && matchedPhotos && matchedPhotos.length > 0) {
       setLightboxIndex((lightboxIndex - 1 + matchedPhotos.length) % matchedPhotos.length);
+      setIsEditing(false);
       resetFilters();
     }
   };
