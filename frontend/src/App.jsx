@@ -224,7 +224,7 @@ export default function App() {
             eventData={publicData} 
             onBack={() => {
               if (user) {
-                setActiveTab('organizer');
+                setActiveTab('events');
               } else {
                 setActiveTab('auth');
               }

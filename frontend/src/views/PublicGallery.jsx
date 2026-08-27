@@ -348,7 +348,19 @@ export function PublicGallery({ eventData, onBack }) {
       {/* Header — matches landing nav style exactly */}
       <header className="bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border-b border-slate-100 dark:border-zinc-800/40 sticky top-0 z-40">
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
-          <Logo onClick={handleLogoClick} />
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button 
+                onClick={onBack}
+                className="px-3.5 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800 shadow-sm"
+                title="Back to My Events"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+            )}
+            <Logo onClick={handleLogoClick} />
+          </div>
           <div className="flex items-center gap-6">
             <div className="text-right hidden sm:block">
               <div className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{activeEvent?.eventName || eventData?.eventName || 'Event Gallery'}</div>
