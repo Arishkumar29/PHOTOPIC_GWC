@@ -95,19 +95,6 @@ export function MyEvents({ onSelectEvent, onBack, onOpenAdminAuth }) {
             Select an event to launch the selfie finder and browse photos.
           </p>
         </div>
-
-        {/* Guest: Admin Portal access button */}
-        {!user && onOpenAdminAuth && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenAdminAuth}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 transition-all text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-zinc-700 shadow-sm cursor-pointer"
-            >
-              <Lock className="w-3.5 h-3.5 text-[#6e2b8b] dark:text-[#da7756]" />
-              <span>Admin Portal</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ─── TOOLBAR: SEARCH + SORT + TABS ───────────────────────── */}
