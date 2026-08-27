@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, Camera, ChevronDown, Check, ChevronLeft } from 'lucide-react';
+import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, Camera, ChevronDown, Check, ChevronLeft, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiFetch } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
-export function MyEvents({ onSelectEvent, onBack }) {
+export function MyEvents({ onSelectEvent, onBack, onOpenAdminAuth }) {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Newest');
@@ -90,9 +92,22 @@ export function MyEvents({ onSelectEvent, onBack }) {
             My <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#6e2b8b] to-[#da7756]">Events.</span>
           </h1>
           <p className="text-slate-500 dark:text-zinc-400 text-sm font-medium mt-1">
-            Select an event to launch the selfie finder or view its guest QR code.
+            Select an event to launch the selfie finder and browse photos.
           </p>
         </div>
+
+        {/* Guest: Admin Portal access button */}
+        {!user && onOpenAdminAuth && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onOpenAdminAuth}
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 transition-all text-xs font-bold flex items-center gap-2 border border-slate-200 dark:border-zinc-700 shadow-sm cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#6e2b8b] dark:text-[#da7756]" />
+              <span>Admin Portal</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ─── TOOLBAR: SEARCH + SORT + TABS ───────────────────────── */}

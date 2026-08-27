@@ -6,7 +6,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { emailSignIn } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
 
-export function AuthView({ onLoginSuccess }) {
+export function AuthView({ onLoginSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
@@ -52,12 +52,19 @@ export function AuthView({ onLoginSuccess }) {
         {/* Top bar */}
         <div className="flex items-center justify-between px-8 py-6">
           <div className="flex items-center gap-3">
-            <Logo size="default" />
+            <Logo size="default" onClick={onCancel} />
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 text-[#6e2b8b] dark:text-[#da7756] border border-purple-200/50 dark:border-purple-900/40">
               Admin Portal
             </span>
           </div>
-          <ThemeToggle />
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            >
+              ← Back to Events Gallery
+            </button>
+          )}
         </div>
 
         <div className="flex-1 flex items-center justify-center px-8 py-12 md:px-16">
