@@ -170,9 +170,9 @@ export const deleteEvent = (req: Request, res: Response) => {
   }
 };
 
-export const updateEvent = (req: Request, res: Response) => {
+export const updateEvent = async (req: Request, res: Response) => {
   const { eventId } = req.params;
-  const { eventName, orgName, coverImage, description, eventLocation, eventType } = req.body;
+  const { eventName, orgName, coverImage, description, eventLocation, eventType, folderId } = req.body;
   const event = events[eventId];
   if (!event) {
     return res.status(404).json({ error: "Event not found" });
@@ -184,6 +184,18 @@ export const updateEvent = (req: Request, res: Response) => {
   if (description !== undefined) (event as any).description = description;
   if (eventLocation !== undefined) (event as any).eventLocation = eventLocation;
   if (eventType !== undefined) (event as any).eventType = eventType;
+
+  if (folderId !== undefined && folderId !== event.folderId) {
+    event.folderId = folderId;
+    if (folderId !== 'local_upload' && folderId.trim()) {
+      try {
+        const driveFiles = await scrapeDriveFolderEntries(folderId);
+        event.driveFiles = driveFiles;
+      } catch (e) {
+        console.warn("Could not scrape updated Drive folder:", e);
+      }
+    }
+  }
 
   saveEventsToDisk();
   res.json({ success: true, event });
