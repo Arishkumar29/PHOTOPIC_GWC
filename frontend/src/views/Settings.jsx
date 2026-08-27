@@ -21,7 +21,6 @@ export function Settings({ onBack }) {
 
   const sections = [
     { id: 'account', label: 'Profile', icon: Shield },
-    { id: 'appearance', label: 'Theme', icon: Sun },
     { id: 'preferences', label: 'Preferences', icon: Monitor },
     { id: 'analytics', label: 'Analytics Config', icon: BarChart3 },
   ];
@@ -169,51 +168,6 @@ export function Settings({ onBack }) {
                     Active
                   </span>
                 </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeSection === 'appearance' && (
-            <motion.div 
-              key="appearance"
-              initial={{ opacity: 0, y: 15 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-slate-100 dark:border-zinc-800/80 p-8 sm:p-10 shadow-sm space-y-8"
-            >
-              <div>
-                <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Appearance Settings</h3>
-                <p className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">Customize how GWC PhotoSync looks across your device screens.</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { id: 'light', label: 'Light Mode', icon: Sun, desc: 'Clean, high contrast daylight palette' },
-                  { id: 'dark', label: 'Dark Mode', icon: Moon, desc: 'Deep modern dark tone' }
-                ].map((item) => {
-                  const isSelected = theme === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setTheme(item.id)}
-                      className={`p-6 rounded-2xl border-2 text-left flex flex-col justify-between h-40 transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'border-[#6e2b8b] bg-purple-50/50 dark:bg-purple-950/30 text-slate-900 dark:text-white font-bold shadow-sm' 
-                          : 'border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/20 text-slate-500 dark:text-zinc-400 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <item.icon className={`w-6 h-6 ${isSelected ? 'text-[#6e2b8b] dark:text-[#da7756]' : 'text-slate-400'}`} />
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#6e2b8b] to-[#da7756]" />}
-                      </div>
-                      <div>
-                        <div className="text-base font-bold">{item.label}</div>
-                        <div className="text-xs font-medium opacity-70 mt-1">{item.desc}</div>
-                      </div>
-                    </button>
-                  );
-                })}
               </div>
             </motion.div>
           )}
