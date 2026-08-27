@@ -74,10 +74,14 @@ export default function App() {
 
       {activeTab === 'public' ? (
         /* Public Gallery & Selfie Scanner */
-        <PageTransition key="public" className="w-full relative z-10 min-h-screen bg-transparent">
+        <PageTransition key={publicData?.eventId || 'public'} className="w-full relative z-10 min-h-screen bg-transparent">
           <PublicGallery 
+            key={publicData?.eventId || 'public'}
             eventData={publicData} 
-            onBack={() => setActiveTab('events')} 
+            onBack={() => {
+              setActiveTab('events');
+              setPublicData(null);
+            }} 
           />
         </PageTransition>
       ) : (
