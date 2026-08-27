@@ -8,6 +8,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['lucide-react', 'motion'],
+          zip: ['jszip'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {

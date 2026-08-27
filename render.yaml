@@ -6,7 +6,7 @@ services:
     dockerContext: .
     plan: free
     region: oregon
-    healthCheckPath: /api/events
+    healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: 3000

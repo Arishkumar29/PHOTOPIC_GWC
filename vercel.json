@@ -4,7 +4,7 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
-      "source": "/((?!api|bulk_photo|assets|.*\\..*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

@@ -3,8 +3,8 @@
   dockerfilePath = "Dockerfile"
 
 [deploy]
-  startCommand = "npm run dev --prefix backend"
-  healthcheckPath = "/api/events"
+  startCommand = "npx tsx backend/server.ts"
+  healthcheckPath = "/api/health"
   healthcheckTimeout = 60
   restartPolicyType = "on_failure"
   restartPolicyMaxRetries = 3
