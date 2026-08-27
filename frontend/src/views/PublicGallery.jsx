@@ -5,36 +5,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
-function BiometricScanView({ onCancel }) {
+function BiometricScanView() {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="max-w-md mx-auto bg-gradient-to-br from-purple-50/90 via-white to-orange-50/60 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-850 text-slate-900 dark:text-zinc-50 rounded-[2.5rem] p-8 border border-purple-100 dark:border-zinc-800 shadow-xl relative overflow-hidden text-center space-y-6"
+      className="max-w-md mx-auto bg-gradient-to-br from-purple-50/90 via-white to-orange-50/60 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-850 text-slate-900 dark:text-zinc-50 rounded-[2.5rem] p-8 sm:p-10 border border-purple-100 dark:border-zinc-800 shadow-xl relative overflow-hidden text-center space-y-6"
     >
-      {/* Top Tag & Undo/Cancel Button */}
-      <div className="flex items-center justify-between pb-2 border-b border-purple-100/60 dark:border-zinc-800">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-[#6e2b8b] dark:text-[#da7756]">
-            AI Neural Scan
-          </span>
-        </div>
-        
-        {/* Undo Option Button */}
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 text-xs font-bold transition-colors cursor-pointer border border-slate-200 dark:border-zinc-700 shadow-xs"
-            title="Cancel scan and retake selfie"
-          >
-            <Undo className="w-3.5 h-3.5 text-[#6e2b8b] dark:text-[#da7756]" />
-            <span>Undo / Cancel</span>
-          </button>
-        )}
-      </div>
-
       {/* Thinking Mascot Illustration with Laser Scan */}
       <div className="relative w-48 h-48 rounded-[2.2rem] overflow-hidden bg-white/80 dark:bg-zinc-800/80 border-2 border-[#da7756] shadow-[0_0_30px_rgba(218,119,86,0.25)] mx-auto flex items-center justify-center p-3">
         <motion.img 
@@ -70,19 +48,6 @@ function BiometricScanView({ onCancel }) {
           Matching Face Vectors
         </div>
       </div>
-
-      {/* Secondary Bottom Undo Button */}
-      {onCancel && (
-        <div className="pt-2 border-t border-slate-100 dark:border-zinc-800">
-          <button
-            onClick={onCancel}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1.5 mx-auto transition-colors cursor-pointer"
-          >
-            <Undo className="w-3.5 h-3.5" />
-            <span>Retake Selfie / Cancel Scan</span>
-          </button>
-        </div>
-      )}
     </motion.div>
   );
 }
@@ -636,16 +601,9 @@ export function PublicGallery({ eventData, onBack }) {
           </motion.div>
         )}
 
-        {/* Scanning State — Mascot Laser Scan with Undo Option */}
+        {/* Scanning State — Clean Mascot Laser Scan */}
         {isScanning && (
-          <BiometricScanView 
-            onCancel={() => {
-              setIsScanning(false);
-              setPhoto(null);
-              setMatchedPhotos(null);
-              setScanError(null);
-            }} 
-          />
+          <BiometricScanView />
         )}
 
         {/* Results / Error State */}
