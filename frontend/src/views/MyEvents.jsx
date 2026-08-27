@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, Camera, ChevronDown, Check, FolderArchive, Loader2, ChevronLeft } from 'lucide-react';
+import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, Camera, ChevronDown, Check, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { apiFetch, resolveMediaUrl } from '../lib/api';
-import { downloadPhotosAsZip } from '../lib/zipHelper';
+import { apiFetch } from '../lib/api';
 
 export function MyEvents({ onSelectEvent, onBack }) {
   const [events, setEvents] = useState([]);
@@ -10,28 +9,7 @@ export function MyEvents({ onSelectEvent, onBack }) {
   const [sortBy, setSortBy] = useState('Newest');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
-  const [zippingEventId, setZippingEventId] = useState(null);
-  const [zipProgress, setZipProgress] = useState(null);
   const sortRef = useRef(null);
-
-  const handleDownloadEventZip = async (eventObj) => {
-    const photos = eventObj.photos || [];
-    if (photos.length === 0 || zippingEventId) return;
-    setZippingEventId(eventObj.eventId);
-    setZipProgress({ current: 0, total: photos.length });
-    try {
-      const resolvedUrls = photos.map(p => resolveMediaUrl(p));
-      const safeName = (eventObj.eventName || 'event').replace(/[^a-zA-Z0-9_-]/g, '_');
-      await downloadPhotosAsZip(resolvedUrls, `${safeName}_all_photos.zip`, (current, total) => {
-        setZipProgress({ current, total });
-      });
-    } catch (err) {
-      console.error("Failed to download event zip:", err);
-    } finally {
-      setZippingEventId(null);
-      setZipProgress(null);
-    }
-  };
 
   useEffect(() => { 
     fetchEvents(); 
@@ -268,35 +246,14 @@ export function MyEvents({ onSelectEvent, onBack }) {
                       </div>
                     </div>
 
-                    {/* User Action buttons: Direct Selfie Page & Download ZIP */}
-                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800/40">
-                      {/* 1. Open Selfie Page */}
+                    {/* User Action button: Open Selfie Page */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-zinc-800/40">
                       <button
                         onClick={() => onSelectEvent(e)}
-                        className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-2.5 px-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 shadow-md shadow-purple-950/20 cursor-pointer"
+                        className="w-full bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-3 px-4 rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-950/20 cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5" />
-                        <span>Open Gallery</span>
-                      </button>
-
-                      {/* 2. Download ZIP */}
-                      <button
-                        onClick={() => handleDownloadEventZip(e)}
-                        disabled={zippingEventId === e.eventId}
-                        className="bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 font-bold py-2.5 px-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                        title="Download all event photos as ZIP"
-                      >
-                        {zippingEventId === e.eventId ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 text-[#6e2b8b] animate-spin" />
-                            <span>Zipping...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FolderArchive className="w-3.5 h-3.5 text-[#da7756]" />
-                            <span>Download ZIP</span>
-                          </>
-                        )}
+                        <span>Open Selfie Page</span>
                       </button>
                     </div>
                   </div>
