@@ -72,13 +72,13 @@ export default function App() {
       if (publicData?.eventId) {
         localStorage.setItem('photopic_public_data', JSON.stringify(publicData));
         if (!window.location.search.includes(`event=${publicData.eventId}`)) {
-          window.history.pushState(null, '', `/?event=${publicData.eventId}`);
+          window.history.replaceState(null, '', `/?event=${publicData.eventId}`);
         }
       }
-    } else if (activeTab && activeTab !== 'auth') {
+    } else if (activeTab) {
       localStorage.setItem('photopic_active_tab', activeTab);
       if (window.location.hash !== `#${activeTab}`) {
-        window.history.pushState(null, '', `#${activeTab}`);
+        window.history.replaceState(null, '', `#${activeTab}`);
       }
     }
   }, [activeTab, publicData]);
@@ -97,31 +97,6 @@ export default function App() {
       document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, [dropdownOpen]);
-
-  // Ensure current view is preserved on initial load and auth restoration
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const eventId = params.get('event');
-    if (eventId) {
-      setPublicData({ eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' });
-      setActiveTab('public');
-    } else if (user) {
-      const hash = window.location.hash.replace('#', '');
-      const validTabs = ['organizer', 'events', 'create_event', 'analytics', 'settings', 'public'];
-      if (hash && validTabs.includes(hash)) {
-        setActiveTab(hash);
-      } else {
-        const savedTab = localStorage.getItem('photopic_active_tab');
-        if (savedTab && validTabs.includes(savedTab) && savedTab !== 'auth') {
-          setActiveTab(savedTab);
-        } else if (activeTab === 'auth') {
-          setActiveTab('organizer');
-        }
-      }
-    } else {
-      setActiveTab('auth');
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     try {
