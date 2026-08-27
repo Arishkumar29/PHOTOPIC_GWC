@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Moon, Sun, Monitor, Shield, Bell, FileDown, BarChart3, Trash2, Eye, Activity, ShieldAlert, Undo } from 'lucide-react';
+import { Moon, Sun, Monitor, Shield, Bell, FileDown, BarChart3, Trash2, Eye, Activity, ShieldAlert, Undo, ChevronLeft } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-export function Settings() {
+export function Settings({ onBack }) {
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('account');
@@ -49,19 +49,13 @@ export function Settings() {
     let filename = `gwc_analytics_${new Date().toISOString().slice(0,10)}`;
     let mimeType = "application/json";
     
-    if (format === 'csv') {
-      fileData = "Metric,Value\n" +
-        `Total Views,456\n` +
-        `Total Downloads,198\n` +
-        `FaceScan Success,89\n` +
-        `FaceScan Failed,4\n` +
-        `Retention Setting,${retentionPeriod} days\n` +
-        `IP Masking,${anonymizeIP ? "Enabled" : "Disabled"}\n`;
-      filename += ".csv";
-      mimeType = "text/csv";
-    } else {
+    if (format === 'json') {
       fileData = JSON.stringify(dummyData, null, 2);
-      filename += ".json";
+      filename += '.json';
+    } else if (format === 'csv') {
+      mimeType = "text/csv";
+      filename += '.csv';
+      fileData = `Metric,Value\nTotal Views,${dummyData.metrics.totalViews}\nTotal Downloads,${dummyData.metrics.totalDownloads}\nSuccessful Face Scans,${dummyData.metrics.successfulFaceScans}\nFailed Face Scans,${dummyData.metrics.failedFaceScans}\nRetention Policy,${dummyData.retentionSetting}\nExported At,${dummyData.exportedAt}`;
     }
     
     const blob = new Blob([fileData], { type: mimeType });
@@ -83,10 +77,24 @@ export function Settings() {
 
   return (
     <div className="max-w-4xl mx-auto w-full text-slate-900 dark:text-zinc-50 text-left space-y-8">
-      {/* Title */}
-      <div>
-        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50 mb-2">Settings</h2>
-        <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm">Manage configuration variables and preferences across the platform.</p>
+      {/* Header with Back Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button 
+                onClick={onBack}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
+                title="Back to Dashboard"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+            )}
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">Settings</h2>
+          </div>
+          <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm mt-2">Manage configuration variables and preferences across the platform.</p>
+        </div>
       </div>
 
       {/* Tabs */}

@@ -44,16 +44,42 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Listen for browser Back and Forward button navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const eventId = params.get('event');
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['organizer', 'events', 'create_event', 'one_qr', 'analytics', 'settings', 'public'];
+
+      if (eventId) {
+        setPublicData({ eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' });
+        setActiveTab('public');
+      } else if (hash && validTabs.includes(hash)) {
+        setActiveTab(hash);
+      } else {
+        setActiveTab(user ? 'organizer' : 'auth');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
   // Sync activeTab and publicData with URL and localStorage across reloads
   useEffect(() => {
     if (activeTab === 'public') {
       if (publicData?.eventId) {
         localStorage.setItem('photopic_public_data', JSON.stringify(publicData));
-        window.history.replaceState(null, '', `/?event=${publicData.eventId}`);
+        if (!window.location.search.includes(`event=${publicData.eventId}`)) {
+          window.history.pushState(null, '', `/?event=${publicData.eventId}`);
+        }
       }
     } else if (activeTab && activeTab !== 'auth') {
       localStorage.setItem('photopic_active_tab', activeTab);
-      window.history.replaceState(null, '', `#${activeTab}`);
+      if (window.location.hash !== `#${activeTab}`) {
+        window.history.pushState(null, '', `#${activeTab}`);
+      }
     }
   }, [activeTab, publicData]);
 
@@ -106,6 +132,7 @@ export default function App() {
           <PageTransition key="organizer-dash">
             <Organizer 
               initialView="dashboard"
+              onNavigate={(tab) => setActiveTab(tab)}
               onOpenPublicView={(data) => {
                 setPublicData(data);
                 setActiveTab('public');
@@ -118,6 +145,7 @@ export default function App() {
           <PageTransition key="create-event-dash">
             <Organizer 
               initialView="create"
+              onBack={() => setActiveTab('organizer')}
               onOpenPublicView={(data) => {
                 setPublicData(data);
                 setActiveTab('public');
@@ -130,6 +158,7 @@ export default function App() {
           <PageTransition key="one-qr-dash">
             <Organizer 
               initialView="one_qr"
+              onBack={() => setActiveTab('organizer')}
               onOpenPublicView={(data) => {
                 setPublicData(data);
                 setActiveTab('public');
@@ -142,6 +171,7 @@ export default function App() {
           <PageTransition key="analytics-dash">
             <Organizer 
               initialView="analytics"
+              onBack={() => setActiveTab('organizer')}
               onOpenPublicView={(data) => {
                 setPublicData(data);
                 setActiveTab('public');
@@ -153,6 +183,7 @@ export default function App() {
         return (
           <PageTransition key="events">
             <MyEvents 
+              onBack={() => setActiveTab('organizer')}
               onCreateEventClick={() => setActiveTab('create_event')}
               onSelectEvent={(data) => {
                 setPublicData(data);
@@ -162,7 +193,11 @@ export default function App() {
           </PageTransition>
         );
       case 'settings':
-        return <PageTransition key="settings"><Settings /></PageTransition>;
+        return (
+          <PageTransition key="settings">
+            <Settings onBack={() => setActiveTab('organizer')} />
+          </PageTransition>
+        );
       default:
         return null;
     }

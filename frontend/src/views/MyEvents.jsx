@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check, FolderArchive, Loader2 } from 'lucide-react';
+import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check, FolderArchive, Loader2, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'react-qr-code';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
 import { downloadPhotosAsZip } from '../lib/zipHelper';
 
-export function MyEvents({ onSelectEvent }) {
+export function MyEvents({ onSelectEvent, onBack }) {
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Newest');
@@ -107,13 +107,27 @@ export function MyEvents({ onSelectEvent }) {
       {/* ─── PAGE HEADER ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#6e2b8b] dark:text-[#da7756] mb-2">
-            Event Galleries
-          </p>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.05]">
-            My <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#6e2b8b] to-[#da7756]">Events.</span>
-          </h1>
-          <p className="text-slate-500 dark:text-zinc-400 text-sm font-medium mt-1">
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button 
+                onClick={onBack}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
+                title="Back to Dashboard"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+            )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#6e2b8b] dark:text-[#da7756] mb-1">
+                Event Galleries
+              </p>
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.05]">
+                My <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#6e2b8b] to-[#da7756]">Events.</span>
+              </h1>
+            </div>
+          </div>
+          <p className="text-slate-500 dark:text-zinc-400 text-sm font-medium mt-2">
             Select an event to launch the selfie finder or view its guest QR code.
           </p>
         </div>
