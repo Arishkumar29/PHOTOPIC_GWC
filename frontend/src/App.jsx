@@ -98,19 +98,28 @@ export default function App() {
     };
   }, [dropdownOpen]);
 
+  // Ensure current view is preserved on initial load and auth restoration
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const eventId = params.get('event');
     if (eventId) {
       setPublicData({ eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' });
       setActiveTab('public');
-    } else {
-      if (!user) {
-        setActiveTab('auth');
-      } else if (activeTab === 'auth') {
+    } else if (user) {
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['organizer', 'events', 'create_event', 'analytics', 'settings', 'public'];
+      if (hash && validTabs.includes(hash)) {
+        setActiveTab(hash);
+      } else {
         const savedTab = localStorage.getItem('photopic_active_tab');
-        setActiveTab(savedTab && savedTab !== 'auth' ? savedTab : 'organizer');
+        if (savedTab && validTabs.includes(savedTab) && savedTab !== 'auth') {
+          setActiveTab(savedTab);
+        } else if (activeTab === 'auth') {
+          setActiveTab('organizer');
+        }
       }
+    } else {
+      setActiveTab('auth');
     }
   }, [user]);
 

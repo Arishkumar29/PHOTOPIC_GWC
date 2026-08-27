@@ -181,6 +181,21 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
   useEffect(() => {
     setViewMode(initialView);
   }, [initialView]);
+
+  useEffect(() => {
+    if (viewMode === 'create') {
+      if (window.location.hash !== '#create_event') window.history.replaceState(null, '', '#create_event');
+      localStorage.setItem('photopic_active_tab', 'create_event');
+    } else if (viewMode === 'analytics') {
+      if (window.location.hash !== '#analytics') window.history.replaceState(null, '', '#analytics');
+      localStorage.setItem('photopic_active_tab', 'analytics');
+    } else if (viewMode === 'dashboard') {
+      if (window.location.hash === '#create_event' || window.location.hash === '#analytics') {
+        window.history.replaceState(null, '', '#organizer');
+        localStorage.setItem('photopic_active_tab', 'organizer');
+      }
+    }
+  }, [viewMode]);
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
