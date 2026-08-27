@@ -22,6 +22,7 @@ export function PublicGallery({ eventData, onBack }) {
     return null;
   });
   const [scanError, setScanError] = useState(null);
+  const [cameraError, setCameraError] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const videoRef = useRef(null);
 
@@ -181,6 +182,7 @@ export function PublicGallery({ eventData, onBack }) {
     setPhoto(null);
     setMatchedPhotos(null);
     setScanError(null);
+    setCameraError(null);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
@@ -188,7 +190,7 @@ export function PublicGallery({ eventData, onBack }) {
       setStream(mediaStream);
     } catch (err) {
       console.error('Camera error:', err);
-      setScanError('Failed to access camera. Please ensure camera permissions are enabled in your browser settings.');
+      setCameraError('Camera access was not allowed. Please click "Allow" in your browser camera prompt to take a selfie.');
     }
   };
 
@@ -328,8 +330,8 @@ export function PublicGallery({ eventData, onBack }) {
       </header>
 
       <main className="max-w-[1400px] mx-auto px-6 py-12">
-             {/* Initial state — hero CTA with Scrolling Photo Showcase */}
-        {!photo && !stream && !matchedPhotos && (
+        {/* Initial state — hero CTA with Scrolling Photo Showcase */}
+        {!photo && !stream && !isScanning && !matchedPhotos && !scanError && (
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -371,6 +373,13 @@ export function PublicGallery({ eventData, onBack }) {
                   Take a quick selfie and let our AI scan the event gallery to find every photo you appear in.
                 </p>
                 
+                {cameraError && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-center justify-center lg:justify-start gap-2 max-w-md mx-auto lg:mx-0">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                    <span>{cameraError}</span>
+                  </div>
+                )}
+
                 <button 
                   onClick={startCamera}
                   className="group relative overflow-hidden bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white font-extrabold text-lg px-10 py-5 rounded-full hover:opacity-95 shadow-xl shadow-purple-950/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 mx-auto lg:mx-0 cursor-pointer"
@@ -525,7 +534,7 @@ export function PublicGallery({ eventData, onBack }) {
         )}
 
         {/* Results / Error State */}
-        {!isScanning && (matchedPhotos || scanError) && (
+        {!isScanning && !stream && (matchedPhotos || scanError) && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
