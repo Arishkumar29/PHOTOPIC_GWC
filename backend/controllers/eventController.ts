@@ -170,6 +170,25 @@ export const deleteEvent = (req: Request, res: Response) => {
   }
 };
 
+export const updateEvent = (req: Request, res: Response) => {
+  const { eventId } = req.params;
+  const { eventName, orgName, coverImage, description, eventLocation, eventType } = req.body;
+  const event = events[eventId];
+  if (!event) {
+    return res.status(404).json({ error: "Event not found" });
+  }
+
+  if (eventName !== undefined) event.eventName = eventName;
+  if (orgName !== undefined) event.orgName = orgName;
+  if (coverImage !== undefined) event.coverImage = coverImage;
+  if (description !== undefined) (event as any).description = description;
+  if (eventLocation !== undefined) (event as any).eventLocation = eventLocation;
+  if (eventType !== undefined) (event as any).eventType = eventType;
+
+  saveEventsToDisk();
+  res.json({ success: true, event });
+};
+
 export const uploadEventPhotos = (req: Request, res: Response) => {
   const { eventId } = req.params;
   const event = events[eventId];

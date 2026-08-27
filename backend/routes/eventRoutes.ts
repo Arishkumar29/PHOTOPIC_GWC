@@ -4,6 +4,7 @@ import {
   createEvent,
   getEvents,
   deleteEvent,
+  updateEvent,
   uploadEventPhotos,
   clearEventPhotos,
   proxyDriveImage
@@ -36,6 +37,7 @@ router.get("/health", (req, res) => {
 
 router.post("/create-event", createEvent);
 router.get("/events", getEvents);
+router.put("/events/:eventId", updateEvent);
 router.delete("/events/:eventId", deleteEvent);
 router.post("/events/:eventId/upload", upload.array("photos"), uploadEventPhotos);
 router.post("/events/:eventId/clear", clearEventPhotos);

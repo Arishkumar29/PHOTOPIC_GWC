@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Home, FolderHeart, PlusCircle, BarChart3, Settings, LogOut, ArrowRight, CheckCircle2, Link as LinkIcon, Building2, Calendar, Copy, Loader2, Sparkles, UploadCloud, Trash2, Sparkle, Image as ImageIcon, Eye, Users, ChevronRight, Download, Edit, AlertCircle, MapPin, AlignLeft, CalendarRange, Share2, EyeOff, Film, Lock, ShieldCheck, Camera, Zap, ChevronLeft } from 'lucide-react';
+import { Home, FolderHeart, PlusCircle, BarChart3, Settings, LogOut, ArrowRight, CheckCircle2, Link as LinkIcon, Building2, Calendar, Copy, Loader2, Sparkles, UploadCloud, Trash2, Sparkle, Image as ImageIcon, Eye, Users, ChevronRight, Download, Edit, AlertCircle, MapPin, AlignLeft, CalendarRange, Share2, EyeOff, Film, Lock, ShieldCheck, Camera, Zap, ChevronLeft, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { googleSignIn } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
@@ -284,6 +284,43 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
     }
   };
 
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const openEditModal = (eventObj) => {
+    setEditingEvent({
+      eventId: eventObj.eventId,
+      eventName: eventObj.eventName || '',
+      orgName: eventObj.orgName || '',
+      coverImage: eventObj.coverImage || PRESET_COVERS[0].url,
+      description: eventObj.description || '',
+      eventLocation: eventObj.eventLocation || '',
+      eventType: eventObj.eventType || 'Wedding'
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e?.preventDefault();
+    if (!editingEvent || !editingEvent.eventId) return;
+    setIsSavingEdit(true);
+    try {
+      const res = await apiFetch(`/api/events/${editingEvent.eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingEvent)
+      });
+      if (res.ok) {
+        setEvents(prev => prev.map(ev => ev.eventId === editingEvent.eventId ? { ...ev, ...editingEvent } : ev));
+        setEditingEvent(null);
+        fetchEvents();
+      }
+    } catch (err) {
+      console.error("Failed to update event:", err);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const copyLink = (link, id) => {
     navigator.clipboard.writeText(link);
     setCopiedId(id);
@@ -487,16 +524,24 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/40">
                           <button 
                             onClick={() => onOpenPublicView(e)}
-                            className="text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:opacity-60 transition-opacity"
+                            className="text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
                           >
                             Preview
                           </button>
-                          <button 
-                            onClick={() => deleteEvent(e.eventId)}
-                            className="text-xs font-semibold text-red-500 hover:opacity-60 transition-opacity"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => openEditModal(e)}
+                              className="text-xs font-semibold text-[#6e2b8b] dark:text-[#da7756] hover:underline transition-colors cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => deleteEvent(e.eventId)}
+                              className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -1100,6 +1145,128 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
           </motion.div>
         )}
 
+      </AnimatePresence>
+
+      {/* ─── ADMIN EDIT EVENT MODAL ──────────────────────────────── */}
+      <AnimatePresence>
+        {editingEvent && (
+          <motion.div
+            key="edit-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setEditingEvent(null)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', bounce: 0.2 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 w-full max-w-lg p-6 sm:p-8 rounded-[2.5rem] shadow-2xl relative space-y-6 text-left"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800/60 pb-4">
+                <div>
+                  <h4 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+                    Edit Event Details
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-0.5">
+                    Update gallery name, organizer, and cover artwork
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditingEvent(null)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form Fields */}
+              <form onSubmit={handleSaveEdit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                    Event Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingEvent.eventName}
+                    onChange={e => setEditingEvent(prev => ({ ...prev, eventName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-[#6e2b8b]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                    Organizer / Studio Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingEvent.orgName}
+                    onChange={e => setEditingEvent(prev => ({ ...prev, orgName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-[#6e2b8b]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                    Cover Image Preset
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {PRESET_COVERS.map(cover => (
+                      <button
+                        type="button"
+                        key={cover.id}
+                        onClick={() => setEditingEvent(prev => ({ ...prev, coverImage: cover.url }))}
+                        className={`h-16 rounded-xl overflow-hidden relative border-2 transition-all cursor-pointer ${
+                          editingEvent.coverImage === cover.url
+                            ? 'border-[#6e2b8b] ring-2 ring-purple-400/40 scale-105'
+                            : 'border-slate-200 dark:border-zinc-700 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={cover.url} alt={cover.name} className="w-full h-full object-cover" />
+                        {editingEvent.coverImage === cover.url && (
+                          <div className="absolute inset-0 bg-purple-950/30 flex items-center justify-center">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-zinc-800/60">
+                  <button
+                    type="button"
+                    onClick={() => setEditingEvent(null)}
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingEdit}
+                    className="flex-1 py-3 bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold rounded-xl text-xs transition-opacity shadow-md shadow-purple-950/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingEdit ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>Save Changes</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
