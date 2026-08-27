@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="gwcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6e2b8b" />
+      <stop offset="100%" stop-color="#da7756" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded pill -->
+  <rect width="64" height="64" rx="16" fill="url(#gwcGrad)" />
+  <!-- GWC Connected Data Network Nodes -->
+  <circle cx="20" cy="42" r="5" fill="#ffffff" />
+  <circle cx="44" cy="42" r="5" fill="#ffffff" />
+  <circle cx="32" cy="22" r="6.5" fill="#ffffff" />
+  <!-- Connecting circuit lines -->
+  <line x1="20" y1="42" x2="32" y2="22" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  <line x1="44" y1="42" x2="32" y2="22" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  <line x1="20" y1="42" x2="44" y2="42" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3 3" />
+  <circle cx="32" cy="22" r="3" fill="#da7756" />
+</svg>

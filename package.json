@@ -3,9 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
-    "build": "npm run build --prefix frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:admin": "npm run dev --prefix admin",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:admin": "npm run build --prefix admin",
+    "build": "npm run build:frontend && npm run build:admin",
     "start": "node dist/server.cjs"
   }
 }
