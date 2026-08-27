@@ -1,4 +1,4 @@
-import { Home, FolderHeart, PlusCircle, QrCode, BarChart3, Settings } from 'lucide-react';
+import { Home, FolderHeart, PlusCircle, BarChart3, Settings } from 'lucide-react';
 import { Logo } from './Logo';
 import { motion } from 'motion/react';
 
@@ -7,7 +7,6 @@ export function Sidebar({ activeTab, setActiveTab, mobileMenuOpen, setMobileMenu
     { id: 'organizer', icon: Home, label: 'Home' },
     { id: 'events', icon: FolderHeart, label: 'My Events' },
     { id: 'create_event', icon: PlusCircle, label: 'Create Event' },
-    { id: 'one_qr', icon: QrCode, label: 'One QR' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];

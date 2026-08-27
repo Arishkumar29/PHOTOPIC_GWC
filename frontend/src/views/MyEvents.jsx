@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, QrCode, Camera, ChevronDown, Check, FolderArchive, Loader2, ChevronLeft } from 'lucide-react';
+import { Search, Calendar, Folder, Copy, CheckCircle, ExternalLink, SlidersHorizontal, Image as ImageIcon, Camera, ChevronDown, Check, FolderArchive, Loader2, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import QRCode from 'react-qr-code';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
 import { downloadPhotosAsZip } from '../lib/zipHelper';
 
@@ -11,7 +10,6 @@ export function MyEvents({ onSelectEvent, onBack }) {
   const [sortBy, setSortBy] = useState('Newest');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
-  const [qrModalEvent, setQrModalEvent] = useState(null);
   const [zippingEventId, setZippingEventId] = useState(null);
   const [zipProgress, setZipProgress] = useState(null);
   const sortRef = useRef(null);
@@ -270,7 +268,7 @@ export function MyEvents({ onSelectEvent, onBack }) {
                       </div>
                     </div>
 
-                    {/* User Action buttons: Direct Selfie Page & QR Code */}
+                    {/* User Action buttons: Direct Selfie Page & Download ZIP */}
                     <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800/40">
                       {/* 1. Open Selfie Page */}
                       <button
@@ -278,117 +276,33 @@ export function MyEvents({ onSelectEvent, onBack }) {
                         className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-2.5 px-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 shadow-md shadow-purple-950/20 cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5" />
-                        <span>Selfie Page</span>
+                        <span>Open Gallery</span>
                       </button>
 
-                      {/* 2. Show QR Code Modal */}
+                      {/* 2. Download ZIP */}
                       <button
-                        onClick={() => setQrModalEvent(e)}
-                        className="bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 font-bold py-2.5 px-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        onClick={() => handleDownloadEventZip(e)}
+                        disabled={zippingEventId === e.eventId}
+                        className="bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 font-bold py-2.5 px-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        title="Download all event photos as ZIP"
                       >
-                        <QrCode className="w-3.5 h-3.5 text-[#6e2b8b] dark:text-[#da7756]" />
-                        <span>Show QR</span>
+                        {zippingEventId === e.eventId ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 text-[#6e2b8b] animate-spin" />
+                            <span>Zipping...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FolderArchive className="w-3.5 h-3.5 text-[#da7756]" />
+                            <span>Download ZIP</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
                 </motion.div>
               );
             })}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ─── EVENT QR CODE MODAL ──────────────────────────────────── */}
-      <AnimatePresence>
-        {qrModalEvent && (
-          <motion.div
-            key="qr-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setQrModalEvent(null)}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              transition={{ type: 'spring', bounce: 0.3 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 w-full max-w-sm p-6 sm:p-8 rounded-[2.5rem] shadow-2xl relative space-y-6 text-center"
-            >
-              {/* Heading */}
-              <div>
-                <h4 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">
-                  {qrModalEvent.eventName}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">
-                  Scan QR code with any phone camera to find face-matched photos
-                </p>
-              </div>
-
-              {/* QR Code Container */}
-              <div className="bg-purple-50/50 dark:bg-zinc-800/60 border border-purple-100 dark:border-zinc-700/60 rounded-[2rem] p-6 flex justify-center shadow-inner">
-                <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-100">
-                  <QRCode 
-                    value={`${window.location.origin}/?event=${qrModalEvent.eventId}`} 
-                    size={160} 
-                    style={{ height: 'auto', maxWidth: '100%', width: '100%' }} 
-                  />
-                </div>
-              </div>
-
-              {/* Link input + copy button */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={`${window.location.origin}/?event=${qrModalEvent.eventId}`}
-                  className="flex-1 px-4 py-3 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-700 dark:text-zinc-300 font-medium focus:outline-none select-all"
-                />
-                <button
-                  onClick={() => copyLink(`${window.location.origin}/?event=${qrModalEvent.eventId}`, 'modal_qr')}
-                  className="p-3 bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white rounded-xl transition-opacity hover:opacity-90 shrink-0 cursor-pointer shadow-sm"
-                  title="Copy Guest Link"
-                >
-                  {copiedId === 'modal_qr' ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Actions: Download ZIP & Open Selfie Page */}
-              <div className="space-y-2.5">
-                <button
-                  onClick={() => handleDownloadEventZip(qrModalEvent)}
-                  disabled={zippingEventId === qrModalEvent.eventId}
-                  className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 font-bold py-3 rounded-full transition-all text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-slate-200/80 dark:border-zinc-700"
-                >
-                  {zippingEventId === qrModalEvent.eventId ? (
-                    <>
-                      <Loader2 className="w-4 h-4 text-[#6e2b8b] animate-spin" />
-                      <span>Zipping {zipProgress ? `(${zipProgress.current}/${zipProgress.total})` : '...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <FolderArchive className="w-4 h-4 text-[#da7756]" />
-                      <span>Download All Photos (ZIP)</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    const ev = qrModalEvent;
-                    setQrModalEvent(null);
-                    onSelectEvent(ev);
-                  }}
-                  className="w-full bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold py-3.5 rounded-full transition-all shadow-lg shadow-purple-950/20 text-sm flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Camera className="w-4 h-4" />
-                  <span>Open Selfie Page</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

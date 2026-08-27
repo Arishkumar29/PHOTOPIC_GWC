@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Home, FolderHeart, PlusCircle, QrCode, BarChart3, Settings, LogOut, ArrowRight, CheckCircle2, Link as LinkIcon, Building2, Calendar, Copy, Loader2, Sparkles, UploadCloud, Trash2, Sparkle, Image as ImageIcon, Eye, Users, ChevronRight, Download, Edit, AlertCircle, MapPin, AlignLeft, CalendarRange, Share2, EyeOff, Film, Lock, ShieldCheck, Camera, Zap, ChevronLeft } from 'lucide-react';
+import { Home, FolderHeart, PlusCircle, BarChart3, Settings, LogOut, ArrowRight, CheckCircle2, Link as LinkIcon, Building2, Calendar, Copy, Loader2, Sparkles, UploadCloud, Trash2, Sparkle, Image as ImageIcon, Eye, Users, ChevronRight, Download, Edit, AlertCircle, MapPin, AlignLeft, CalendarRange, Share2, EyeOff, Film, Lock, ShieldCheck, Camera, Zap, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import QRCode from 'react-qr-code';
 import { googleSignIn } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
@@ -798,31 +797,28 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
                     <div>
                       <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">Gallery Published!</h2>
                       <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm mt-2">
-                        Event <span className="font-bold text-slate-800 dark:text-zinc-200">{eventName}</span> is live. Guests can scan below.
+                        Event <span className="font-bold text-slate-800 dark:text-zinc-200">{eventName}</span> is live. Share the link below with your attendees.
                       </p>
                     </div>
 
-                    {/* QR Code Container */}
-                    <div className="bg-purple-50/50 dark:bg-zinc-800/60 border border-purple-100 dark:border-zinc-700 rounded-[2rem] p-6 flex justify-center shadow-inner inline-block">
-                      <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-100">
-                        <QRCode value={eventQRLink} size={180} style={{ height: 'auto', maxWidth: '100%', width: '100%' }} />
+                    {/* Published Link Container */}
+                    <div className="bg-purple-50/50 dark:bg-zinc-800/60 border border-purple-100 dark:border-zinc-700 rounded-[2rem] p-6 text-center space-y-3">
+                      <div className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Public Gallery URL</div>
+                      <div className="flex gap-2 max-w-md mx-auto">
+                        <input 
+                          type="text"
+                          readOnly
+                          value={publicLink || `${window.location.origin}/?event=${eventId}`}
+                          className="flex-1 px-4 py-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-700 dark:text-zinc-300 font-medium select-all"
+                        />
+                        <button 
+                          onClick={() => copyLink(publicLink || `${window.location.origin}/?event=${eventId}`, 'step3_link')}
+                          className="p-3 bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white rounded-xl transition-opacity hover:opacity-90 shrink-0 cursor-pointer shadow-sm"
+                          title="Copy Event Link"
+                        >
+                          {copiedId === 'step3_link' ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </button>
                       </div>
-                    </div>
-
-                    {/* Copy Link input */}
-                    <div className="flex gap-2 max-w-md mx-auto">
-                      <input 
-                        type="text"
-                        readOnly
-                        value={eventQRLink}
-                        className="flex-1 px-4 py-3 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-700 dark:text-zinc-300 font-medium select-all"
-                      />
-                      <button 
-                        onClick={() => copyLink(eventQRLink, 'step3_link')}
-                        className="p-3 bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white rounded-xl transition-opacity hover:opacity-90 shrink-0 cursor-pointer shadow-sm"
-                      >
-                        {copiedId === 'step3_link' ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </button>
                     </div>
 
                     {/* Action buttons */}
@@ -888,48 +884,6 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
                 </div>
               </div>
             )}
-          </motion.div>
-        )}
-
-        {viewMode === 'one_qr' && (
-          <motion.div
-            key="one_qr"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ type: 'spring', bounce: 0.2 }}
-            className="bg-white dark:bg-zinc-900 border border-purple-100 dark:border-zinc-800 rounded-[2.5rem] p-8 max-w-xl mx-auto text-center space-y-8 shadow-sm"
-          >
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">One QR System</h2>
-              <p className="text-slate-500 dark:text-zinc-400 font-medium mt-2">Your single persistent QR code, always routed to your active event gallery.</p>
-            </div>
-            
-            <div className="bg-purple-50/50 dark:bg-zinc-800/60 border border-purple-100 dark:border-zinc-700 p-8 rounded-[2rem] inline-block shadow-md">
-              <div className="p-3 bg-white rounded-2xl shadow-sm">
-                <QRCode value={globalQRLink} size={200} style={{ height: 'auto', maxWidth: '100%', width: '100%' }} />
-              </div>
-            </div>
-
-            <div className="w-full max-w-md mx-auto space-y-4">
-              <div className="flex gap-2 justify-center">
-                <button 
-                  onClick={() => window.print()}
-                  className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold px-6 py-3.5 rounded-full transition-all shadow-md shadow-purple-950/20 text-sm flex items-center gap-2 cursor-pointer"
-                >
-                  <Download className="w-4 h-4" /> Download Printable QR
-                </button>
-                <button 
-                  onClick={() => copyLink(globalQRLink, 'oneqr_tab')}
-                  className="bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold px-6 py-3.5 rounded-full transition-all text-sm flex items-center gap-2 cursor-pointer"
-                >
-                  <Copy className="w-4 h-4" /> {copiedId === 'oneqr_tab' ? 'Copied!' : 'Copy Link'}
-                </button>
-              </div>
-              <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium py-2.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200 dark:border-zinc-700 select-all px-4">
-                {globalQRLink}
-              </div>
-            </div>
           </motion.div>
         )}
 

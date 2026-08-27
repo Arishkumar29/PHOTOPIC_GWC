@@ -33,7 +33,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('event')) return 'public';
     const hash = window.location.hash.replace('#', '');
-    const validTabs = ['organizer', 'events', 'create_event', 'one_qr', 'analytics', 'settings', 'public'];
+    const validTabs = ['organizer', 'events', 'create_event', 'analytics', 'settings', 'public'];
     if (validTabs.includes(hash)) return hash;
     const savedTab = localStorage.getItem('photopic_active_tab');
     if (savedTab && validTabs.includes(savedTab)) return savedTab;
@@ -50,7 +50,7 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const eventId = params.get('event');
       const hash = window.location.hash.replace('#', '');
-      const validTabs = ['organizer', 'events', 'create_event', 'one_qr', 'analytics', 'settings', 'public'];
+      const validTabs = ['organizer', 'events', 'create_event', 'analytics', 'settings', 'public'];
 
       if (eventId) {
         setPublicData({ eventId, orgName: 'Event Guest', eventName: 'Photo Gallery' });
@@ -153,19 +153,6 @@ export default function App() {
             />
           </PageTransition>
         );
-      case 'one_qr':
-        return (
-          <PageTransition key="one-qr-dash">
-            <Organizer 
-              initialView="one_qr"
-              onBack={() => setActiveTab('organizer')}
-              onOpenPublicView={(data) => {
-                setPublicData(data);
-                setActiveTab('public');
-              }} 
-            />
-          </PageTransition>
-        );
       case 'analytics':
         return (
           <PageTransition key="analytics-dash">
@@ -208,7 +195,6 @@ export default function App() {
       case 'organizer': return 'Dashboard';
       case 'events': return 'My Events';
       case 'create_event': return 'Create Event';
-      case 'one_qr': return 'QR Code Portal';
       case 'analytics': return 'Analytics';
       case 'settings': return 'Settings';
       default: return 'Admin Dashboard';
