@@ -11,13 +11,19 @@ export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
   const [stream, setStream] = useState(null);
   const [photo, setPhoto] = useState(() => {
-    return sessionStorage.getItem('photopic_selfie') || null;
+    try {
+      return localStorage.getItem('photopic_selfie') || sessionStorage.getItem('photopic_selfie') || null;
+    } catch {
+      return null;
+    }
   });
   const [isScanning, setIsScanning] = useState(false);
   const [matchedPhotos, setMatchedPhotos] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('photopic_matched_photos');
-      if (saved) return JSON.parse(saved);
+      const savedLocal = localStorage.getItem('photopic_matched_photos');
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = sessionStorage.getItem('photopic_matched_photos');
+      if (savedSession) return JSON.parse(savedSession);
     } catch (e) {}
     return null;
   });
@@ -177,8 +183,12 @@ export function PublicGallery({ eventData, onBack }) {
   };
 
   const startCamera = async () => {
-    sessionStorage.removeItem('photopic_matched_photos');
-    sessionStorage.removeItem('photopic_selfie');
+    try {
+      localStorage.removeItem('photopic_matched_photos');
+      localStorage.removeItem('photopic_selfie');
+      sessionStorage.removeItem('photopic_matched_photos');
+      sessionStorage.removeItem('photopic_selfie');
+    } catch (e) {}
     setPhoto(null);
     setMatchedPhotos(null);
     setScanError(null);
@@ -205,7 +215,10 @@ export function PublicGallery({ eventData, onBack }) {
       ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
       const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
       setPhoto(photoDataUrl);
-      sessionStorage.setItem('photopic_selfie', photoDataUrl);
+      try {
+        localStorage.setItem('photopic_selfie', photoDataUrl);
+        sessionStorage.setItem('photopic_selfie', photoDataUrl);
+      } catch (e) {}
       stopCamera();
       findMyPhotos(photoDataUrl);
     }
@@ -236,12 +249,18 @@ export function PublicGallery({ eventData, onBack }) {
         return resolveMediaUrl(m.path || m.url || '');
       }).filter(Boolean);
       setMatchedPhotos(list);
-      sessionStorage.setItem('photopic_matched_photos', JSON.stringify(list));
+      try {
+        localStorage.setItem('photopic_matched_photos', JSON.stringify(list));
+        sessionStorage.setItem('photopic_matched_photos', JSON.stringify(list));
+      } catch (e) {}
     } catch (err) {
       console.error(err);
       setScanError(err.message || 'An error occurred while finding photos.');
       setMatchedPhotos([]);
-      sessionStorage.removeItem('photopic_matched_photos');
+      try {
+        localStorage.removeItem('photopic_matched_photos');
+        sessionStorage.removeItem('photopic_matched_photos');
+      } catch (e) {}
     } finally {
       setIsScanning(false);
     }

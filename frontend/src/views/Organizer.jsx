@@ -474,7 +474,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
               </div>
               <div className="relative z-10">
                 <h4 className="text-lg sm:text-xl font-semibold tracking-tight text-white">The GWC FaceSync Workflow</h4>
-                <p className="text-sm font-medium text-white/85 mt-1">Create Gallery → Connect Drive / Upload → Guests scan QR </p>
+                <p className="text-sm font-medium text-white/85 mt-1">Create Gallery → Connect Drive / Upload </p>
               </div>
               <button 
                 onClick={() => setViewMode('create')}
