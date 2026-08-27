@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, 
-  Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2, 
-  Wand2, Sun, Contrast, Droplet, Palette, RotateCcw, Check, Sparkle, Layers, EyeOff
-} from 'lucide-react';
+import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -32,7 +28,6 @@ export function PublicGallery({ eventData, onBack }) {
 
   // Photo editing state variables
   const [isEditing, setIsEditing] = useState(false);
-  const [isComparing, setIsComparing] = useState(false);
   const [editFilters, setEditFilters] = useState({
     brightness: 100,
     contrast: 100,
@@ -88,37 +83,13 @@ export function PublicGallery({ eventData, onBack }) {
     }
   }, [currentEvent, eventData]);
 
-  // Preset definitions with modern visual badges and calibrated color parameters
-  const PRESET_DEFINITIONS = [
-    { id: 'original', name: 'Original', icon: '🌟', desc: 'Natural true-to-life', filter: 'none', bg: 'from-zinc-500/20 to-zinc-700/20' },
-    { id: 'warm', name: 'Golden Hour', icon: '🌅', desc: 'Warm sunset glow', filter: 'brightness(105%) contrast(104%) saturate(125%) sepia(22%)', bg: 'from-amber-500/30 to-orange-500/30' },
-    { id: 'cool', name: 'Nordic Cool', icon: '🌊', desc: 'Airy crisp blue', filter: 'brightness(102%) contrast(106%) saturate(105%) hue-rotate(185deg)', bg: 'from-cyan-500/30 to-blue-500/30' },
-    { id: 'studio', name: 'Studio Polish', icon: '✨', desc: 'Skin clarity & punch', filter: 'brightness(110%) contrast(108%) saturate(112%)', bg: 'from-purple-500/30 to-pink-500/30' },
-    { id: 'vivid', name: 'Vivid Pop', icon: '🌈', desc: 'Bold rich colors', filter: 'saturate(155%) contrast(115%) brightness(102%)', bg: 'from-fuchsia-500/30 to-rose-500/30' },
-    { id: 'vintage', name: 'Retro Gold', icon: '🎞️', desc: '90s nostalgic grain tone', filter: 'sepia(45%) contrast(110%) brightness(98%) saturate(90%)', bg: 'from-yellow-600/30 to-amber-700/30' },
-    { id: 'noir', name: 'Dramatic Noir', icon: '🎬', desc: 'High contrast B&W', filter: 'grayscale(100%) contrast(135%) brightness(95%)', bg: 'from-zinc-800 to-black' },
-    { id: 'pastel', name: 'Soft Dream', icon: '🌸', desc: 'Dreamy soft vibe', filter: 'brightness(108%) contrast(92%) saturate(120%) hue-rotate(345deg)', bg: 'from-pink-400/30 to-purple-400/30' }
-  ];
-
-  // Reset filters to clean default original state
-  const resetFilters = () => {
-    setActivePreset('original');
-    setEditFilters({
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      sepia: 0,
-      hue: 0
-    });
-  };
-
   // CSS Filter string compiler
   const getFilterString = () => {
-    if (isComparing) return 'none';
-    if (activePreset !== 'original') {
-      const p = PRESET_DEFINITIONS.find(item => item.id === activePreset);
-      if (p && p.filter) return p.filter;
-    }
+    if (activePreset === 'warm') return 'brightness(105%) contrast(102%) saturate(120%) sepia(20%)';
+    if (activePreset === 'cool') return 'brightness(102%) contrast(105%) saturate(110%) hue-rotate(15deg)';
+    if (activePreset === 'noir') return 'grayscale(100%) contrast(120%)';
+    if (activePreset === 'vintage') return 'sepia(60%) contrast(90%) brightness(105%)';
+    if (activePreset === 'vivid') return 'saturate(150%) contrast(110%)';
     return `brightness(${editFilters.brightness}%) contrast(${editFilters.contrast}%) saturate(${editFilters.saturation}%) sepia(${editFilters.sepia}%) hue-rotate(${editFilters.hue}deg)`;
   };
 
@@ -276,18 +247,25 @@ export function PublicGallery({ eventData, onBack }) {
     }
   };
 
-  const openLightbox = (index, shouldEdit = false) => {
+  const resetFilters = () => {
+    setActivePreset('original');
+    setEditFilters({
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      sepia: 0,
+      hue: 0
+    });
+  };
+
+  const openLightbox = (index) => {
     setLightboxIndex(index);
-    setIsEditing(shouldEdit);
-    setIsComparing(false);
     resetFilters();
     document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setLightboxIndex(null);
-    setIsEditing(false);
-    setIsComparing(false);
     resetFilters();
     document.body.style.overflow = 'auto';
   };
@@ -308,7 +286,6 @@ export function PublicGallery({ eventData, onBack }) {
     }
   };
 
-  // Keyboard navigation & shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (lightboxIndex === null) return;
@@ -758,15 +735,8 @@ export function PublicGallery({ eventData, onBack }) {
                         </div>
                       </div>
 
-                      {/* Bottom Right: Quick Actions (Enhance Wand + Download) */}
+                      {/* Bottom Right: Quick Download Button */}
                       <div className="absolute bottom-3.5 right-3.5 z-20 flex items-center gap-2">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); openLightbox(i, true); }}
-                          className="bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100 p-2.5 rounded-full shadow-lg border border-white/40 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group/btn"
-                          title="Enhance & Edit Colors"
-                        >
-                          <Wand2 className="w-4 h-4 text-[#6e2b8b] dark:text-[#da7756] group-hover/btn:rotate-12 transition-transform" />
-                        </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDownload(photoUrl); }}
                           className="bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100 p-2.5 rounded-full shadow-lg border border-white/40 dark:border-zinc-700 transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group/btn"
@@ -784,7 +754,7 @@ export function PublicGallery({ eventData, onBack }) {
         )}
       </main>
 
-      {/* Lightbox Photo Studio */}
+      {/* Lightbox */}
       {createPortal(
         <AnimatePresence>
           {lightboxIndex !== null && matchedPhotos && (
@@ -792,420 +762,250 @@ export function PublicGallery({ eventData, onBack }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex flex-col md:flex-row overflow-hidden"
+              className="fixed inset-0 z-50 bg-black/98 backdrop-blur-md flex flex-col md:flex-row"
               onClick={closeLightbox}
             >
-              {/* Top Navigation Bar */}
-              <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-50 pointer-events-none">
-                {/* Left: Studio & Compare buttons */}
-                <div className="flex items-center gap-2.5 pointer-events-auto">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setIsEditing(!isEditing); }}
-                    className={`px-4 py-2.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 shadow-lg cursor-pointer ${
-                      isEditing 
-                        ? 'bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white border-transparent shadow-purple-950/40 ring-2 ring-purple-400/30' 
-                        : 'bg-white/10 hover:bg-white/20 text-white border-white/20 hover:border-white/40'
-                    }`}
-                  >
-                    <Wand2 className={`w-3.5 h-3.5 ${isEditing ? 'animate-spin-slow text-orange-200' : 'text-purple-300'}`} />
-                    <span>{isEditing ? 'Studio Active ✨' : 'Color Studio ✨'}</span>
-                  </button>
-
-                  {/* Hold to Compare Toggle */}
-                  <button
-                    onMouseDown={(e) => { e.stopPropagation(); setIsComparing(true); }}
-                    onMouseUp={(e) => { e.stopPropagation(); setIsComparing(false); }}
-                    onTouchStart={(e) => { e.stopPropagation(); setIsComparing(true); }}
-                    onTouchEnd={(e) => { e.stopPropagation(); setIsComparing(false); }}
-                    onClick={(e) => e.stopPropagation()}
-                    className={`px-3.5 py-2.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 shadow-md select-none cursor-pointer ${
-                      isComparing 
-                        ? 'bg-amber-500 text-black border-amber-400 font-bold scale-95' 
-                        : 'bg-white/10 hover:bg-white/15 text-white/90 border-white/15'
-                    }`}
-                    title="Press and hold to view original without edits"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-amber-300" />
-                    <span className="hidden sm:inline">Hold to Compare</span>
-                  </button>
-
-                  {/* Reset Edits Shortcut */}
-                  {(activePreset !== 'original' || editFilters.brightness !== 100 || editFilters.contrast !== 100 || editFilters.saturation !== 100 || editFilters.sepia !== 0 || editFilters.hue !== 0) && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); resetFilters(); }}
-                      className="px-3 py-2 rounded-full text-xs font-semibold bg-white/10 hover:bg-red-500/20 text-white/80 hover:text-red-200 border border-white/10 hover:border-red-400/30 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
-                      title="Reset all color adjustments"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span className="hidden sm:inline">Reset</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Center: Match Badge */}
-                <div className="hidden lg:flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-white text-xs font-bold tracking-wider pointer-events-none">
-                  <Sparkles className="w-3.5 h-3.5 text-[#da7756]" />
-                  <span>PHOTO {lightboxIndex + 1} OF {matchedPhotos.length}</span>
-                </div>
-                
-                {/* Right: Close button */}
-                <button 
-                  className="text-white/70 hover:text-white p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/20 pointer-events-auto shadow-md cursor-pointer hover:rotate-90 duration-200"
-                  onClick={closeLightbox}
-                  title="Close (Esc)"
+            {/* Header controls */}
+            <div className="absolute top-5 left-5 right-5 flex justify-between items-center z-50 pointer-events-none">
+              <div className="flex gap-2 pointer-events-auto">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsEditing(!isEditing); }}
+                  className={`px-4 py-2.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 ${
+                    isEditing 
+                      ? 'bg-white text-black border-white shadow-lg font-black' 
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+                  }`}
                 >
-                  <X className="w-4.5 h-4.5" />
+                  <Sliders className="w-3.5 h-3.5" />
+                  {isEditing ? 'Tuning Colors...' : 'Tune Colors'}
                 </button>
               </div>
               
-              {/* Left/Main Content area: Image Viewport */}
-              <div className="flex-1 flex items-center justify-center relative p-6 sm:p-12 select-none cursor-zoom-out" onClick={closeLightbox}>
-                {/* Prev Photo Arrow */}
-                <button 
-                  onClick={prevPhoto} 
-                  className="absolute left-3 sm:left-6 text-white/60 hover:text-white p-3 sm:p-4 bg-black/30 hover:bg-white/15 rounded-full transition-all z-40 border border-white/10 hover:border-white/30 shadow-xl cursor-pointer hover:scale-105 active:scale-95"
-                  title="Previous Photo (Left Arrow)"
-                >
-                  <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
-                </button>
+              <button 
+                className="text-white/60 hover:text-white p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/20 pointer-events-auto shadow-md"
+                onClick={closeLightbox}
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+            </div>
+            
+            {/* Left/Main Content area: Image frame */}
+            <div className="flex-1 flex items-center justify-center relative p-8 select-none cursor-zoom-out" onClick={closeLightbox}>
+              <button 
+                onClick={prevPhoto} 
+                className="absolute left-4 sm:left-6 text-white/50 hover:text-white p-3 hover:bg-white/10 rounded-full transition-all z-40 border border-transparent hover:border-white/20 shadow-md cursor-pointer"
+              >
+                <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
 
-                {/* Main Photo Frame */}
-                <div 
-                  className="relative w-full h-full max-h-[68vh] sm:max-h-[78vh] max-w-[85vw] flex items-center justify-center rounded-3xl cursor-default"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Before / After Floating Pill Indicator */}
-                  {isComparing ? (
-                    <div className="absolute top-4 left-4 z-30 bg-amber-500 text-black text-[11px] font-black tracking-wider uppercase px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5">
-                      <Eye className="w-3 h-3" /> ORIGINAL
-                    </div>
-                  ) : (activePreset !== 'original' || editFilters.brightness !== 100 || editFilters.contrast !== 100 || editFilters.saturation !== 100 || editFilters.sepia !== 0 || editFilters.hue !== 0) ? (
-                    <div className="absolute top-4 left-4 z-30 bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white text-[11px] font-black tracking-wider uppercase px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 border border-white/20">
-                      <Sparkles className="w-3 h-3" /> ENHANCED ({activePreset !== 'original' ? PRESET_DEFINITIONS.find(p => p.id === activePreset)?.name : 'CUSTOM'})
-                    </div>
-                  ) : null}
-
-                  <motion.img 
-                    key={lightboxIndex}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                    src={matchedPhotos[lightboxIndex]} 
-                    alt="Fullscreen view" 
-                    style={{ filter: getFilterString() }}
-                    className="max-h-full max-w-full object-contain rounded-2xl sm:rounded-3xl shadow-2xl transition-all duration-150 border border-white/10"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (target.src.includes('/api/drive-proxy/')) {
-                        const fileId = target.src.split('/api/drive-proxy/')[1];
-                        if (fileId && !target.src.includes('googleusercontent.com')) {
-                          target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1600`;
-                        }
+              <div 
+                className="relative w-full h-full max-h-[65vh] sm:max-h-[75vh] max-w-[85vw] flex items-center justify-center rounded-2xl cursor-default"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <motion.img 
+                  key={lightboxIndex}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                  src={matchedPhotos[lightboxIndex]} 
+                  alt="Fullscreen view" 
+                  style={{ filter: getFilterString() }}
+                  className="max-h-full max-w-full object-contain rounded-2xl shadow-2xl transition-all duration-150"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src.includes('/api/drive-proxy/')) {
+                      const fileId = target.src.split('/api/drive-proxy/')[1];
+                      if (fileId && !target.src.includes('googleusercontent.com')) {
+                        target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1600`;
                       }
-                    }}
-                  />
-                </div>
-
-                {/* Next Photo Arrow */}
-                <button 
-                  onClick={nextPhoto} 
-                  className="absolute right-3 sm:right-6 text-white/60 hover:text-white p-3 sm:p-4 bg-black/30 hover:bg-white/15 rounded-full transition-all z-40 border border-white/10 hover:border-white/30 shadow-xl cursor-pointer hover:scale-105 active:scale-95"
-                  title="Next Photo (Right Arrow)"
-                >
-                  <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
-                </button>
-                
-                {/* Bottom Quick Save bar when editor is closed */}
-                {!isEditing && (
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 cursor-default z-30" onClick={(e) => e.stopPropagation()}>
-                    <button 
-                      onClick={() => setIsEditing(true)}
-                      className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold px-5 py-3 rounded-full border border-white/20 flex items-center gap-2 hover:scale-105 transition-all text-xs cursor-pointer shadow-lg"
-                    >
-                      <Wand2 className="w-3.5 h-3.5 text-[#da7756]" />
-                      <span>Enhance Colors</span>
-                    </button>
-                    <button 
-                      disabled={isDownloading}
-                      className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 hover:scale-105 hover:shadow-xl transition-all shadow-lg text-xs cursor-pointer"
-                      onClick={() => handleDownload(matchedPhotos[lightboxIndex])}
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>{isDownloading ? 'Saving...' : 'Save High-Res (HD)'}</span>
-                    </button>
-                  </div>
-                )}
+                    }
+                  }}
+                />
               </div>
 
-              {/* Right Sidebar: Modern AI & Color Studio Panel */}
-              <AnimatePresence>
-                {isEditing && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 100 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                    className="w-full md:w-96 bg-zinc-950/90 backdrop-blur-2xl border-t md:border-t-0 md:border-l border-white/10 p-6 flex flex-col justify-between shrink-0 overflow-y-auto max-h-[50vh] md:max-h-screen z-30 shadow-2xl"
-                    onClick={(e) => e.stopPropagation()}
+              <button 
+                onClick={nextPhoto} 
+                className="absolute right-4 sm:right-6 text-white/50 hover:text-white p-3 hover:bg-white/10 rounded-full transition-all z-40 border border-transparent hover:border-white/20 shadow-md cursor-pointer"
+              >
+                <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
+              
+              {/* Bottom controls panel when NOT editing */}
+              {!isEditing && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 cursor-default" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    disabled={isDownloading}
+                    className="bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-900 font-bold px-6 py-3 rounded-full flex items-center gap-2 hover:scale-105 hover:shadow-xl transition-all shadow-lg text-sm cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); handleDownload(matchedPhotos[lightboxIndex]); }}
                   >
-                    <div className="space-y-6 pt-8 md:pt-14">
-                      {/* Panel Title & Reset Button */}
-                      <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#6e2b8b] to-[#da7756] flex items-center justify-center shadow-md">
-                            <Wand2 className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
-                              Photo Studio
-                              <span className="text-[10px] bg-purple-500/20 text-purple-300 font-bold px-2 py-0.5 rounded-full border border-purple-400/20">PRO</span>
-                            </h4>
-                            <p className="text-[11px] text-zinc-400">Instant presets &amp; color tuning</p>
-                          </div>
-                        </div>
+                    <Download className="w-4 h-4" /> {isDownloading ? 'Saving...' : 'Save High-Res'}
+                  </button>
+                </div>
+              )}
+            </div>
 
-                        <button
-                          onClick={resetFilters}
-                          className="text-[11px] font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
-                          title="Reset tuning for this photo"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Reset</span>
-                        </button>
+            {/* Right sidebar area: Editor panel */}
+            <AnimatePresence>
+              {isEditing && (
+                <motion.div
+                  initial={{ opacity: 0, x: 80 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 80 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                  className="w-full md:w-80 bg-zinc-950/80 backdrop-blur-xl border-t md:border-t-0 md:border-l border-zinc-800/60 p-6 flex flex-col justify-between shrink-0 overflow-y-auto max-h-[45vh] md:max-h-screen z-20"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-6 pt-10 md:pt-14">
+                    <div>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-zinc-400">Color Tuning</h4>
+                      <p className="text-[11px] text-zinc-550 mt-1">Adjust presets or custom parameters to correct color balances.</p>
+                    </div>
+
+                    {/* Presets List */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">Presets</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { id: 'original', label: 'Original' },
+                          { id: 'warm', label: 'Warm Glow' },
+                          { id: 'cool', label: 'Cool Breeze' },
+                          { id: 'noir', label: 'Noir' },
+                          { id: 'vintage', label: 'Vintage' },
+                          { id: 'vivid', label: 'Vivid' }
+                        ].map((preset) => {
+                          const isActive = activePreset === preset.id;
+                          return (
+                            <button
+                              key={preset.id}
+                              onClick={() => {
+                                setActivePreset(preset.id);
+                                if (preset.id !== 'original') {
+                                  setEditFilters({ brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0 });
+                                }
+                              }}
+                              className={`py-2 px-1 rounded-xl text-[10px] font-semibold transition-all text-center border ${
+                                isActive 
+                                  ? 'bg-white border-white text-black shadow-sm font-bold' 
+                                  : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/20'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          );
+                        })}
                       </div>
+                    </div>
 
-                      {/* Presets Gallery (8 Calibrated Presets) */}
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                            <Sparkles className="w-3 h-3 text-[#da7756]" />
-                            <span>1-Tap Presets</span>
-                          </label>
-                          <span className="text-[10px] text-zinc-500">Auto-calibrated</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          {PRESET_DEFINITIONS.map((preset) => {
-                            const isActive = activePreset === preset.id;
-                            return (
-                              <button
-                                key={preset.id}
-                                onClick={() => {
-                                  setActivePreset(preset.id);
-                                  if (preset.id !== 'original') {
-                                    setEditFilters({ brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0 });
-                                  }
-                                }}
-                                className={`p-2.5 rounded-2xl text-left transition-all border relative overflow-hidden cursor-pointer group ${
-                                  isActive 
-                                    ? 'bg-gradient-to-r from-purple-950/60 to-orange-950/40 border-[#da7756] ring-1 ring-[#da7756] shadow-lg' 
-                                    : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-zinc-300'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base">{preset.icon}</span>
-                                  <div className="min-w-0 flex-1">
-                                    <div className={`text-xs font-bold truncate ${isActive ? 'text-white' : 'text-zinc-200'}`}>
-                                      {preset.name}
-                                    </div>
-                                    <div className="text-[10px] text-zinc-400 truncate">
-                                      {preset.desc}
-                                    </div>
-                                  </div>
-                                  {isActive && (
-                                    <Check className="w-3.5 h-3.5 text-[#da7756] shrink-0" />
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Custom Fine-Tuning Sliders */}
-                      <div className="space-y-4 pt-2">
-                        <div className="flex items-center justify-between pb-1">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                            <Sliders className="w-3 h-3 text-[#6e2b8b]" />
-                            <span>Fine-Tune Parameters</span>
-                          </label>
+                    {/* Custom Adjustments */}
+                    {activePreset === 'original' && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">Custom Tuning</label>
                           <button
                             onClick={() => setEditFilters({ brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0 })}
-                            className="text-[10px] font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            className="text-[10px] font-bold text-white hover:text-zinc-200 flex items-center gap-1 transition-colors"
                           >
-                            Reset Sliders
+                            <Undo className="w-3 h-3" /> Reset
                           </button>
                         </div>
 
-                        {/* Brightness Slider */}
-                        <div className="space-y-1.5 bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                              <Sun className="w-3.5 h-3.5 text-amber-400" /> Brightness
-                            </span>
-                            <button
-                              onClick={() => setEditFilters({ ...editFilters, brightness: 100 })}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-                              title="Click to reset to 100%"
-                            >
-                              {editFilters.brightness}%
-                            </button>
+                        {/* Brightness */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-zinc-400">
+                            <span>Brightness</span>
+                            <span>{editFilters.brightness}%</span>
                           </div>
                           <input 
                             type="range" 
                             min="50" 
                             max="150" 
                             value={editFilters.brightness} 
-                            onChange={(e) => {
-                              setActivePreset('original');
-                              setEditFilters({ ...editFilters, brightness: parseInt(e.target.value) });
-                            }}
-                            className="w-full accent-amber-400 bg-white/10 rounded-lg appearance-none h-1.5 cursor-pointer"
+                            onChange={(e) => setEditFilters({ ...editFilters, brightness: parseInt(e.target.value) })}
+                            className="w-full accent-white bg-white/10 rounded-lg appearance-none h-1"
                           />
                         </div>
 
-                        {/* Contrast Slider */}
-                        <div className="space-y-1.5 bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                              <Contrast className="w-3.5 h-3.5 text-purple-400" /> Contrast
-                            </span>
-                            <button
-                              onClick={() => setEditFilters({ ...editFilters, contrast: 100 })}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-                              title="Click to reset to 100%"
-                            >
-                              {editFilters.contrast}%
-                            </button>
+                        {/* Contrast */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-zinc-400">
+                            <span>Contrast</span>
+                            <span>{editFilters.contrast}%</span>
                           </div>
                           <input 
                             type="range" 
                             min="50" 
                             max="150" 
                             value={editFilters.contrast} 
-                            onChange={(e) => {
-                              setActivePreset('original');
-                              setEditFilters({ ...editFilters, contrast: parseInt(e.target.value) });
-                            }}
-                            className="w-full accent-purple-400 bg-white/10 rounded-lg appearance-none h-1.5 cursor-pointer"
+                            onChange={(e) => setEditFilters({ ...editFilters, contrast: parseInt(e.target.value) })}
+                            className="w-full accent-white bg-white/10 rounded-lg appearance-none h-1"
                           />
                         </div>
 
-                        {/* Saturation Slider */}
-                        <div className="space-y-1.5 bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                              <Droplet className="w-3.5 h-3.5 text-rose-400" /> Saturation
-                            </span>
-                            <button
-                              onClick={() => setEditFilters({ ...editFilters, saturation: 100 })}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-                              title="Click to reset to 100%"
-                            >
-                              {editFilters.saturation}%
-                            </button>
+                        {/* Saturation */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-zinc-400">
+                            <span>Saturation</span>
+                            <span>{editFilters.saturation}%</span>
                           </div>
                           <input 
                             type="range" 
                             min="0" 
                             max="200" 
                             value={editFilters.saturation} 
-                            onChange={(e) => {
-                              setActivePreset('original');
-                              setEditFilters({ ...editFilters, saturation: parseInt(e.target.value) });
-                            }}
-                            className="w-full accent-rose-400 bg-white/10 rounded-lg appearance-none h-1.5 cursor-pointer"
+                            onChange={(e) => setEditFilters({ ...editFilters, saturation: parseInt(e.target.value) })}
+                            className="w-full accent-white bg-white/10 rounded-lg appearance-none h-1"
                           />
                         </div>
 
-                        {/* Warmth / Sepia Slider */}
-                        <div className="space-y-1.5 bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5 text-orange-400" /> Warmth / Tone
-                            </span>
-                            <button
-                              onClick={() => setEditFilters({ ...editFilters, sepia: 0 })}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-                              title="Click to reset to 0%"
-                            >
-                              {editFilters.sepia}%
-                            </button>
+                        {/* Sepia */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-zinc-400">
+                            <span>Sepia</span>
+                            <span>{editFilters.sepia}%</span>
                           </div>
                           <input 
                             type="range" 
                             min="0" 
                             max="100" 
                             value={editFilters.sepia} 
-                            onChange={(e) => {
-                              setActivePreset('original');
-                              setEditFilters({ ...editFilters, sepia: parseInt(e.target.value) });
-                            }}
-                            className="w-full accent-orange-400 bg-white/10 rounded-lg appearance-none h-1.5 cursor-pointer"
+                            onChange={(e) => setEditFilters({ ...editFilters, sepia: parseInt(e.target.value) })}
+                            className="w-full accent-white bg-white/10 rounded-lg appearance-none h-1"
                           />
                         </div>
 
-                        {/* Hue Shift Slider */}
-                        <div className="space-y-1.5 bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                              <Palette className="w-3.5 h-3.5 text-cyan-400" /> Hue Shift
-                            </span>
-                            <button
-                              onClick={() => setEditFilters({ ...editFilters, hue: 0 })}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-                              title="Click to reset to 0°"
-                            >
-                              {editFilters.hue}°
-                            </button>
+                        {/* Hue Rotate */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-zinc-400">
+                            <span>Hue Rotate</span>
+                            <span>{editFilters.hue}°</span>
                           </div>
                           <input 
                             type="range" 
                             min="0" 
                             max="360" 
                             value={editFilters.hue} 
-                            onChange={(e) => {
-                              setActivePreset('original');
-                              setEditFilters({ ...editFilters, hue: parseInt(e.target.value) });
-                            }}
-                            className="w-full accent-cyan-400 bg-white/10 rounded-lg appearance-none h-1.5 cursor-pointer"
+                            onChange={(e) => setEditFilters({ ...editFilters, hue: parseInt(e.target.value) })}
+                            className="w-full accent-white bg-white/10 rounded-lg appearance-none h-1"
                           />
                         </div>
                       </div>
-                    </div>
+                    )}
+                  </div>
 
-                    {/* Bottom Save & Download Actions */}
-                    <div className="pt-6 border-t border-white/10 mt-6 space-y-2.5">
-                      <button
-                        onClick={() => handleDownload(matchedPhotos[lightboxIndex])}
-                        disabled={isDownloading}
-                        className="w-full bg-gradient-to-r from-[#6e2b8b] via-[#da7756] to-[#da7756] hover:opacity-95 disabled:opacity-50 text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-purple-950/40 hover:scale-[1.02] active:scale-95 transition-all text-xs cursor-pointer"
-                      >
-                        {isDownloading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
-                            <span>Exporting High-Res...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-4 h-4" />
-                            <span>Download Edited Photo (HD)</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={resetFilters}
-                        className="w-full bg-white/5 hover:bg-white/10 text-zinc-300 font-semibold py-2.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all text-xs cursor-pointer border border-white/5"
-                      >
-                        <Undo className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>Revert to Original</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  <div className="pt-6 border-t border-zinc-900 mt-4">
+                    <button
+                      onClick={() => handleDownload(matchedPhotos[lightboxIndex])}
+                      disabled={isDownloading}
+                      className="w-full bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-full flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all text-xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      {isDownloading ? 'Downloading...' : 'Download Edited Photo'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>,
