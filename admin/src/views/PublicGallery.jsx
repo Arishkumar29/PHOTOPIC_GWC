@@ -5,7 +5,151 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
-import { downloadPhotosAsZip } from '../lib/zipHelper';
+function BiometricScanView({ photo }) {
+  const [progress, setProgress] = useState(15);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+
+  const phases = [
+    { label: "Detecting 68 Facial Landmarks", detail: "Mapping eyes, nose, lips and jawline contours", icon: ScanFace },
+    { label: "Extracting 128D Deep Vector Embeddings", detail: "Synthesizing biometric signature via OpenCV AI", icon: Sparkles },
+    { label: "Cosine Similarity Matrix Search", detail: "Matching vector distances against event album", icon: Search },
+    { label: "Synthesizing High-Confidence Matches", detail: "Finalizing photo gallery results for attendee", icon: Eye }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 96) return 96;
+        const jump = Math.floor(Math.random() * 8) + 5;
+        const next = Math.min(prev + jump, 96);
+        if (next > 75) setPhaseIndex(3);
+        else if (next > 50) setPhaseIndex(2);
+        else if (next > 25) setPhaseIndex(1);
+        return next;
+      });
+    }, 280);
+    return () => clearInterval(timer);
+  }, []);
+
+  const CurrentIcon = phases[phaseIndex].icon;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="max-w-xl mx-auto bg-gradient-to-br from-purple-50/90 via-white to-orange-50/70 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-850 rounded-[3rem] p-6 sm:p-10 border border-purple-100 dark:border-zinc-800 shadow-2xl relative overflow-hidden text-center space-y-8"
+    >
+      {/* Top Holographic Tag */}
+      <div className="flex items-center justify-between pb-4 border-b border-purple-100/60 dark:border-zinc-800">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#6e2b8b] dark:text-[#da7756]">
+            AI Neural FaceSync
+          </span>
+        </div>
+        <div className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+          {progress}% COMPLETED
+        </div>
+      </div>
+
+      {/* Center Biometric Portal */}
+      <div className="relative w-56 h-56 mx-auto flex items-center justify-center">
+        {/* Outermost Rotating Radar Ring */}
+        <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#6e2b8b]/30 dark:border-[#6e2b8b]/50 animate-spin [animation-duration:14s]" />
+        
+        {/* Middle Counter-Rotating Orange Ring */}
+        <div className="absolute inset-2 rounded-full border-2 border-dashed border-[#da7756]/40 dark:border-[#da7756]/60 animate-spin [animation-duration:9s] [animation-direction:reverse]" />
+        
+        {/* Pulsing Ambient Halo */}
+        <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-[#6e2b8b]/20 to-[#da7756]/20 blur-xl animate-pulse" />
+
+        {/* User's Selfie / Mascot inside Biometric Target Lens */}
+        <div className="relative w-40 h-40 rounded-full overflow-hidden border-3 border-white dark:border-zinc-800 shadow-2xl bg-slate-950 flex items-center justify-center">
+          {photo ? (
+            <img 
+              src={photo} 
+              alt="Biometric Scan Subject" 
+              className="w-full h-full object-cover transform -scale-x-100 filter contrast-105"
+            />
+          ) : (
+            <img 
+              src="/mascot_thinking.png" 
+              alt="AI Thinking" 
+              className="w-28 h-28 object-contain"
+            />
+          )}
+
+          {/* Sweeping Cyan / Gold Laser Radar Line */}
+          <motion.div 
+            animate={{ y: ['-100%', '200%', '-100%'] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#da7756] to-transparent shadow-[0_0_15px_4px_rgba(218,119,86,0.9)] z-20"
+          />
+
+          {/* Biometric Landmark Dots Overlay */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="w-24 h-28 relative">
+              {/* Eye dots */}
+              <span className="absolute top-8 left-5 w-2 h-2 rounded-full bg-cyan-400 animate-ping shadow-[0_0_8px_cyan]" />
+              <span className="absolute top-8 right-5 w-2 h-2 rounded-full bg-cyan-400 animate-ping shadow-[0_0_8px_cyan]" />
+              {/* Nose dot */}
+              <span className="absolute top-14 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse shadow-[0_0_6px_gold]" />
+              {/* Mouth line */}
+              <span className="absolute bottom-6 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-emerald-400/80 animate-pulse" />
+              {/* Target brackets */}
+              <div className="absolute inset-0 border border-cyan-400/40 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Mascot Companion Pill */}
+        <div className="absolute -bottom-2 -right-2 bg-white dark:bg-zinc-800 p-1.5 rounded-2xl shadow-xl border border-purple-100 dark:border-zinc-700">
+          <img src="/mascot_thinking.png" alt="AI Mascot" className="w-10 h-10 object-contain" />
+        </div>
+      </div>
+
+      {/* Progress Bar & Telemetry Text */}
+      <div className="space-y-4 max-w-md mx-auto">
+        {/* Sleek Progress Bar */}
+        <div className="w-full bg-slate-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-zinc-700">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-[#6e2b8b] via-[#8c35b0] to-[#da7756] rounded-full shadow-sm"
+            style={{ width: `${progress}%` }}
+            transition={{ type: 'spring', damping: 20 }}
+          />
+        </div>
+
+        {/* Dynamic Phase Card */}
+        <div className="bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-purple-100 dark:border-zinc-700/80 p-4 rounded-2xl shadow-sm text-left flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-[#6e2b8b] dark:text-[#da7756] flex items-center justify-center shrink-0 border border-purple-100 dark:border-zinc-700">
+            <CurrentIcon className="w-5 h-5 animate-pulse" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-zinc-50 truncate">
+              {phases[phaseIndex].label}
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium truncate mt-0.5">
+              {phases[phaseIndex].detail}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Soundwave / Neural Frequency Visualizer Bars */}
+      <div className="flex items-center justify-center gap-1.5 pt-2">
+        {[40, 65, 85, 30, 95, 55, 75, 100, 60, 80, 45, 90, 35, 70, 50, 80].map((h, i) => (
+          <motion.div
+            key={i}
+            animate={{ height: ['8px', `${Math.max(12, h * 0.35)}px`, '8px'] }}
+            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08, ease: 'easeInOut' }}
+            className="w-1.5 rounded-full bg-gradient-to-t from-[#6e2b8b] to-[#da7756]"
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
 
 export function PublicGallery({ eventData, onBack }) {
   const [currentEvent, setCurrentEvent] = useState(eventData);
@@ -556,49 +700,9 @@ export function PublicGallery({ eventData, onBack }) {
           </motion.div>
         )}
 
-        {/* Scanning State — Holographic Diagnostic Panel */}
+        {/* Scanning State — Unique Holographic Biometric Radar Panel */}
         {isScanning && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md mx-auto bg-gradient-to-br from-purple-50/90 via-white to-orange-50/60 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-850 text-slate-900 dark:text-zinc-50 rounded-[2.5rem] p-8 border border-purple-100 dark:border-zinc-800 shadow-xl relative overflow-hidden text-center space-y-6"
-          >
-            {/* Thinking Mascot Illustration with Laser Scan */}
-            <div className="relative w-44 h-44 rounded-[2rem] overflow-hidden bg-white/60 dark:bg-zinc-800/60 border-2 border-[#da7756] shadow-[0_0_30px_rgba(218,119,86,0.25)] mx-auto flex items-center justify-center p-2">
-              <motion.img 
-                src="/mascot_thinking.png" 
-                alt="AI Thinking" 
-                animate={{ scale: [1, 1.03, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-full h-full object-contain drop-shadow-md"
-              />
-              
-              {/* Laser line sweeping */}
-              <motion.div 
-                animate={{ y: ['-10%', '110%', '-10%'] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6e2b8b] via-[#da7756] to-[#6e2b8b] shadow-[0_0_12px_rgba(218,119,86,1)] z-20"
-              />
-            </div>
-
-            {/* Animated progress indicators */}
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-50 flex items-center justify-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#da7756] animate-ping"></span>
-                Searching Your Photos...
-              </h3>
-              <p className="text-slate-500 dark:text-zinc-400 text-xs max-w-xs mx-auto">
-                GWC AI is scanning and matching your face against the event gallery album...
-              </p>
-            </div>
-
-            {/* Diagnostic indicator */}
-            <div className="relative w-full py-2 flex justify-center items-center">
-              <div className="text-[11px] font-semibold tracking-wider text-[#6e2b8b] dark:text-[#da7756] animate-pulse uppercase">
-                Matching Face Vectors
-              </div>
-            </div>
-          </motion.div>
+          <BiometricScanView photo={photo} />
         )}
 
         {/* Results / Error State */}
