@@ -76,24 +76,10 @@ export function Settings({ onBack }) {
 
   return (
     <div className="max-w-4xl mx-auto w-full text-slate-900 dark:text-zinc-50 text-left space-y-8">
-      {/* Header with Back Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button 
-                onClick={onBack}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
-                title="Back to Dashboard"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
-              </button>
-            )}
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">Settings</h2>
-          </div>
-          <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm mt-2">Manage configuration variables and preferences across the platform.</p>
-        </div>
+      {/* Title */}
+      <div>
+        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50 mb-2">Settings</h2>
+        <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm">Manage configuration variables and preferences across the platform.</p>
       </div>
 
       {/* Tabs */}

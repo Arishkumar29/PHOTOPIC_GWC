@@ -504,28 +504,15 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
             className="bg-slate-50 dark:bg-zinc-900/40 border border-slate-100 dark:border-zinc-800/40 rounded-[2.5rem] p-6 sm:p-8 md:p-10 relative overflow-hidden min-h-[580px] flex flex-col justify-between"
           >
             {/* Editorial step indicator — large typographic numbers with thin connecting lines */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10 pb-6 border-b border-slate-200/60 dark:border-zinc-800/40 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onBack) onBack();
-                  else setViewMode('dashboard');
-                }}
-                className="self-start sm:self-auto p-2 rounded-full hover:bg-slate-200/60 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
-                title="Back to Dashboard"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Dashboard</span>
-              </button>
-
-              <div className="flex items-center gap-4 sm:gap-10">
-                {[
-                  { n: 1, label: 'Event Details' },
-                  { n: 2, label: 'Connect Drive' },
-                  { n: 3, label: 'Review & Publish' },
-                ].map((s, idx) => (
+            <div className="flex justify-center items-center gap-6 sm:gap-10 mb-10 pb-6 border-b border-slate-200/60 dark:border-zinc-800/40 shrink-0">
+              {[
+                { n: 1, label: 'Event Details' },
+                { n: 2, label: 'Connect Drive' },
+                { n: 3, label: 'Review & Publish' },
+              ].map((s, idx) => (
+                <>
+                  {idx > 0 && <div key={`line-${idx}`} className="w-8 sm:w-14 h-px bg-slate-200 dark:bg-zinc-800 shrink-0" />}
                   <div key={s.n} className="flex items-center gap-2.5">
-                    {idx > 0 && <div className="hidden sm:block w-8 sm:w-14 h-px bg-slate-200 dark:bg-zinc-800 shrink-0 mr-2.5" />}
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                       step >= s.n
                         ? 'bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
@@ -535,8 +522,8 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
                       step >= s.n ? 'text-slate-900 dark:text-zinc-50' : 'text-slate-400 dark:text-zinc-500'
                     }`}>{s.label}</span>
                   </div>
-                ))}
-              </div>
+                </>
+              ))}
             </div>
 
             <div className="flex-1 pb-20">
@@ -913,19 +900,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
             transition={{ type: 'spring', bounce: 0.2 }}
             className="bg-white dark:bg-zinc-900 border border-purple-100 dark:border-zinc-800 rounded-[2.5rem] p-8 max-w-xl mx-auto text-center space-y-8 shadow-sm"
           >
-            <div className="flex flex-col items-center">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onBack) onBack();
-                  else setViewMode('dashboard');
-                }}
-                className="self-start mb-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
-                title="Back to Dashboard"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Dashboard</span>
-              </button>
+            <div>
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">One QR System</h2>
               <p className="text-slate-500 dark:text-zinc-400 font-medium mt-2">Your single persistent QR code, always routed to your active event gallery.</p>
             </div>
@@ -966,24 +941,10 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onBack, onOpe
             exit={{ opacity: 0, y: -15 }}
             className="space-y-8 text-left"
           >
-            {/* Page Header with Back button */}
-            <div className="mb-8 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onBack) onBack();
-                  else setViewMode('dashboard');
-                }}
-                className="self-start p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border border-slate-200/80 dark:border-zinc-800"
-                title="Back to Dashboard"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Dashboard</span>
-              </button>
-              <div>
-                <h2 className="text-3xl font-semibold text-slate-900 dark:text-zinc-50 tracking-tight mb-2">Analytics &amp; Performance</h2>
-                <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm">Monitor public gallery visits, image downloads, and facial search registrations in real time.</p>
-              </div>
+            {/* Page Header matching Settings section style */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-semibold text-slate-900 dark:text-zinc-50 tracking-tight mb-2">Analytics &amp; Performance</h2>
+              <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm">Monitor public gallery visits, image downloads, and facial search registrations in real time.</p>
             </div>
 
             {/* Top Local Sub-Tabs matching reference mockup */}
