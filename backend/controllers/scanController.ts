@@ -3,10 +3,10 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import os from "os";
-import { events } from "./eventController";
-import { initAnalytics, eventAnalytics } from "./analyticsController";
-import { getBulkPhotoDir, ensureDirExists, removeDirSync } from "../services/storageService";
-import { runPythonScan, ScanMatch } from "../services/faceScanService";
+import { events } from "./eventController.js";
+import { initAnalytics, eventAnalytics } from "./analyticsController.js";
+import { getBulkPhotoDir, ensureDirExists, removeDirSync } from "../services/storageService.js";
+import { runPythonScan, ScanMatch } from "../services/faceScanService.js";
 
 const scanRateLimit = new Map<string, { count: number; resetTime: number }>();
 
@@ -32,6 +32,15 @@ export const rateLimiter = (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const scanFaces = async (req: Request, res: Response) => {
+  // Face scanning requires Python + OpenCV which is not available on Vercel.
+  // To enable face scanning, deploy the backend on Railway or Render instead.
+  if (process.env.VERCEL) {
+    return res.status(503).json({
+      error: "Face scanning is not available on this deployment. Please contact the event organizer.",
+      unavailable: true,
+    });
+  }
+
   let tempSelfiePath = "";
   let scanTempDir = "";
 

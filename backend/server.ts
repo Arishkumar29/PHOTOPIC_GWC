@@ -3,24 +3,27 @@ import path from "path";
 import fs from "fs";
 import "dotenv/config";
 
-import eventRoutes from "./routes/eventRoutes";
-import analyticsRoutes from "./routes/analyticsRoutes";
-import scanRoutes from "./routes/scanRoutes";
-import { getBulkPhotoDir, getProjectRootDir } from "./services/storageService";
+import eventRoutes from "./routes/eventRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import scanRoutes from "./routes/scanRoutes.js";
+import { getBulkPhotoDir, getProjectRootDir } from "./services/storageService.js";
+import { connectDB } from "./services/dbService.js";
+import { loadEventsFromDB } from "./controllers/eventController.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const projectRoot = getProjectRootDir();
 const frontendRoot = path.join(projectRoot, "frontend");
 const distRoot = fs.existsSync(path.join(frontendRoot, "dist"))
   ? path.join(frontendRoot, "dist")
   : path.join(projectRoot, "dist");
 
-// ── CORS — allow Vercel frontend to call the Railway backend ──────────────────
+// ── CORS — allow Vercel frontend to call the backend ──────────────────
 app.use((req, res, next) => {
   const allowedOrigins = [
-    process.env.FRONTEND_URL,   // set this on Railway to your Vercel URL
+    process.env.FRONTEND_URL,
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://localhost:3000',
   ].filter(Boolean);
   const origin = req.headers.origin as string;
@@ -36,7 +39,27 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "50mb" }));
 
-// Serve static bulk photos from storage directory
+// ── Root Health Check ────────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "GWC PhotoPic Backend API",
+    message: "PhotoPic API is live and operational.",
+    endpoints: [
+      "/api/events",
+      "/api/create-event",
+      "/api/scan-faces",
+      "/api/analytics",
+      "/api/health"
+    ]
+  });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
+// ── Static Bulk Photos Handler ────────────────────────────────────────
 app.use("/bulk_photo", (req, res, next) => {
   const rawPath = req.path;
   let decodedPath = rawPath;
@@ -61,16 +84,22 @@ app.use("/bulk_photo", (req, res, next) => {
   next();
 });
 
-// Register API routes
+// ── Register API Routes ──────────────────────────────────────────────
 app.use("/api", eventRoutes);
 app.use("/api", analyticsRoutes);
 app.use("/api", scanRoutes);
 
+// ── Standalone Server Starter ────────────────────────────────────────
 async function startServer() {
+  // Connect to MongoDB and load events (falls back to disk/memory if no MONGODB_URI)
+  await connectDB();
+  await loadEventsFromDB();
+
   const hasFrontendModules = fs.existsSync(path.join(frontendRoot, "node_modules", "vite"));
   
   if (process.env.NODE_ENV !== "production" && hasFrontendModules) {
     try {
+      // @ts-ignore — vite is a frontend dev-only dep, dynamically imported only in dev mode
       const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         root: frontendRoot,
@@ -81,7 +110,9 @@ async function startServer() {
       app.use(vite.middlewares);
 
       app.get("*", async (req, res, next) => {
-        // Never return index.html for static assets, JavaScript scripts, or Vite internal requests
+        if (req.path.startsWith("/api") || req.path.startsWith("/bulk_photo")) {
+          return next();
+        }
         if (req.path.startsWith("/@") || req.path.startsWith("/node_modules") || req.path.match(/\.(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|map)$/)) {
           return next();
         }
@@ -104,35 +135,9 @@ async function startServer() {
       console.log("Vite dev server bypassed. Running in standalone API mode.");
     }
   } else {
-    // Standalone API server mode (for Render/Railway production)
     if (fs.existsSync(distRoot)) {
       app.use(express.static(distRoot));
     }
-
-    app.get("/", (req, res) => {
-      res.json({
-        status: "ok",
-        service: "GWC PhotoPic Backend API",
-        message: "API Server running. Frontend is hosted on Vercel.",
-        endpoints: ["/api/events", "/api/create-event", "/api/scan-faces", "/api/analytics"]
-      });
-    });
-
-    app.get("*", (req, res, next) => {
-      if (req.path.startsWith("/api") || req.path.startsWith("/bulk_photo")) {
-        return next();
-      }
-      const indexPath = path.join(distRoot, "index.html");
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.json({
-          status: "ok",
-          service: "GWC PhotoPic Backend API",
-          message: "API Server running. Frontend is hosted on Vercel."
-        });
-      }
-    });
   }
 
   const server = app.listen(PORT, "0.0.0.0", () => {
@@ -154,6 +159,9 @@ async function startServer() {
 
 if (!process.env.VERCEL) {
   startServer();
+} else {
+  // Serverless (Vercel): connect DB once per cold start
+  connectDB().then(() => loadEventsFromDB()).catch(console.error);
 }
 
 export default app;

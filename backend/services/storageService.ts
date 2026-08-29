@@ -16,13 +16,17 @@ export const getProjectRootDir = (): string => {
 };
 
 export const getBulkPhotoDir = (subPath: string = ""): string => {
-  const base = process.env.VERCEL === "1" ? os.tmpdir() : getProjectRootDir();
+  const base = process.env.VERCEL ? os.tmpdir() : getProjectRootDir();
   return path.join(base, "bulk_photo", subPath);
 };
 
 export const ensureDirExists = (dirPath: string): void => {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  } catch (err) {
+    console.warn(`[storageService] Could not create dir ${dirPath}:`, err);
   }
 };
 

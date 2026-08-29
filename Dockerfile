@@ -5,7 +5,7 @@
 FROM node:20-slim
 
 # Install Python, pip, and system libs needed by OpenCV
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python3-dev \
@@ -16,30 +16,29 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Make `python` point to python3
+# Make `python` point to python3 (required by faceScanService.ts -> spawn("python",...))
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
-# Set environment variables for Python pip install
-ENV UV_LINK_MODE=copy
+# Set pip flags
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Set working directory
+WORKDIR /app
 
 # Install Python dependencies
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
-# Set working directory
-WORKDIR /app
+# Install Node.js backend dependencies
+COPY backend/package*.json ./backend/
+RUN cd /app/backend && npm install
 
-# Copy root repository files
+# Copy entire repo
 COPY . .
 
-# Install Node.js backend dependencies
-WORKDIR /app/backend
-RUN npm install
-
-WORKDIR /app
 ENV PORT=3000
+ENV NODE_ENV=production
 EXPOSE 3000
 
-# Start the backend API server
-CMD ["npx", "tsx", "backend/server.ts"]
+# Run tsx from the backend dir so it finds its own node_modules
+CMD ["node", "/app/backend/node_modules/.bin/tsx", "backend/server.ts"]
