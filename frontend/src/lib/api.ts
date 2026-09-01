@@ -1,5 +1,5 @@
 // Central API helper connecting Frontend to Backend
-const BASE = import.meta.env.VITE_API_URL ?? '';
+const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
 
 /**
  * Resolves media / image URLs so relative paths like /bulk_photo or /api/drive-proxy
