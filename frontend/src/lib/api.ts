@@ -1,5 +1,6 @@
 // Central API helper connecting Frontend to Backend
-const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
+const DEFAULT_PROD_API = 'https://photopic-backend-git-main-arishkumars-projects.vercel.app';
+const BASE = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? DEFAULT_PROD_API : '')).replace(/\/+$/, '');
 
 /**
  * Resolves media / image URLs so relative paths like /bulk_photo or /api/drive-proxy
