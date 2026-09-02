@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
+import { loadModels, extractDescriptor } from '../lib/faceDetection';
 function BiometricScanView() {
   return (
     <motion.div 
@@ -303,19 +304,53 @@ export function PublicGallery({ eventData, onBack }) {
     setScanError(null);
     const activeEventId = currentEvent?.eventId || eventData?.eventId || 'evt_sample';
     try {
+      // ── Step 1: Extract face descriptor in-browser (works on Vercel) ─────────
+      let selfieDescriptor = null;
+      try {
+        await loadModels();
+
+        // Create an image element from the data URL for face-api
+        const img = new Image();
+        img.src = photoDataUrl;
+        await new Promise((res, rej) => {
+          img.onload = res;
+          img.onerror = rej;
+        });
+
+        // Draw to canvas (face-api works best with canvas)
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+
+        const descriptor = await extractDescriptor(canvas);
+        if (descriptor) {
+          selfieDescriptor = Array.from(descriptor); // Float32Array → plain array
+          console.log('[gallery] Face descriptor extracted:', selfieDescriptor.length, 'd vector');
+        } else {
+          console.warn('[gallery] No face detected in selfie — falling back to raw image');
+        }
+      } catch (faceErr) {
+        console.warn('[gallery] face-api extraction failed:', faceErr);
+      }
+
+      // ── Step 2: Send to backend ─────────────────────────────────────────────
+      const payload = selfieDescriptor
+        ? { eventId: activeEventId, selfieDescriptor }
+        : { eventId: activeEventId, referenceImage: photoDataUrl };
+
       const response = await apiFetch('/api/scan-faces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: activeEventId,
-          referenceImage: photoDataUrl
-        })
+        body: JSON.stringify(payload)
       });
       
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Failed to scan photos');
       }
+
+      console.log('[gallery] Scan result:', data.engine, '— matches:', data.count);
       
       const rawMatches = data.matches || [];
       const list = rawMatches.map((m) => {
@@ -338,6 +373,7 @@ export function PublicGallery({ eventData, onBack }) {
       setIsScanning(false);
     }
   };
+
 
   const resetFilters = () => {
     setActivePreset('original');
