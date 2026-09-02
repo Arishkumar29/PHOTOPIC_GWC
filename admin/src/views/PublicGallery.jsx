@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
+import { loadModels, extractCroppedFace } from '../lib/faceDetection';
 function BiometricScanView() {
   return (
     <motion.div 
@@ -332,12 +333,28 @@ export function PublicGallery({ eventData, onBack }) {
     setScanError(null);
     const activeEventId = currentEvent?.eventId || eventData?.eventId || 'evt_sample';
     try {
+      let croppedFace = null;
+      try {
+        const img = new Image();
+        img.src = photoDataUrl;
+        await new Promise((res, rej) => {
+          img.onload = res;
+          img.onerror = rej;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        croppedFace = await extractCroppedFace(canvas);
+      } catch (e) {}
+
       const response = await apiFetch('/api/scan-faces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId: activeEventId,
-          referenceImage: photoDataUrl
+          referenceImage: photoDataUrl,
+          croppedFaceImage: croppedFace || undefined
         })
       });
       

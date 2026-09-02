@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { apiFetch, resolveMediaUrl } from '../lib/api';
-import { loadModels, extractDescriptor } from '../lib/faceDetection';
+import { loadModels, extractDescriptor, extractCroppedFace } from '../lib/faceDetection';
 function BiometricScanView() {
   return (
     <motion.div 
@@ -355,8 +355,11 @@ export function PublicGallery({ eventData, onBack }) {
         if (descriptor) {
           selfieDescriptor = Array.from(descriptor); // Float32Array → plain array
           console.log('[gallery] Face descriptor extracted:', selfieDescriptor.length, 'd vector');
-        } else {
-          console.warn('[gallery] No face detected in selfie — falling back to raw image');
+        }
+
+        var croppedFace = await extractCroppedFace(canvas);
+        if (croppedFace) {
+          console.log('[gallery] High-precision aligned 112x112 face crop generated');
         }
       } catch (faceErr) {
         console.warn('[gallery] face-api extraction failed:', faceErr);
@@ -366,6 +369,7 @@ export function PublicGallery({ eventData, onBack }) {
       const payload = {
         eventId: activeEventId,
         referenceImage: photoDataUrl,
+        croppedFaceImage: croppedFace || undefined,
         selfieDescriptor: selfieDescriptor || undefined
       };
 
