@@ -410,7 +410,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
     }
   };
 
-  const totalPhotosSynced = events.reduce((sum, e) => sum + (e.photos?.length || 0), 0);
+  const totalPhotosSynced = events.reduce((sum, e) => sum + (e.driveFiles?.length || e.photos?.length || 0), 0);
   const userAppUrl = window.location.port === '5174' ? 'http://localhost:5173' : window.location.origin;
   const publicLink = eventId ? `${userAppUrl}/?event=${eventId}` : '';
 

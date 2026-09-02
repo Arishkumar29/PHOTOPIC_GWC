@@ -227,7 +227,7 @@ export function MyEvents({ onSelectEvent, onBack, onOpenAdminAuth }) {
 
                     {/* Photo count pill */}
                     <span className="absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-black/40 text-white border border-white/20 backdrop-blur-sm">
-                      {e.photos?.length || 0} photos
+                      {(e.driveFiles?.length || e.photos?.length || 0)} photos
                     </span>
                   </div>
 
