@@ -192,6 +192,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
   const [eventLocation, setEventLocation] = useState('');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState(PRESET_COVERS[0].url);
+  const [cloudProvider, setCloudProvider] = useState('onedrive'); // 'onedrive' | 'gdrive'
   const [folderLink, setFolderLink] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [eventId, setEventId] = useState('');
@@ -362,11 +363,21 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
     setIsSyncing(true);
     setSyncError('');
     try {
-      const authResult = await googleSignIn();
-      if (!authResult) throw new Error("Google Authentication failed");
+      const isOneDrive = cloudProvider === 'onedrive' || folderLink.includes('1drv.ms') || folderLink.includes('onedrive.live.com') || folderLink.includes('sharepoint.com');
+      let folderId = folderLink.trim();
+      let accessToken = 'public_sync_token';
+
+      if (!isOneDrive) {
+        try {
+          const authResult = await googleSignIn();
+          if (authResult?.accessToken) accessToken = authResult.accessToken;
+        } catch (e) {
+          // non-fatal for public Google Drive links
+        }
+        const match = folderLink.match(/folders\/([a-zA-Z0-9-_]+)/);
+        if (match) folderId = match[1];
+      }
       
-      const match = folderLink.match(/folders\/([a-zA-Z0-9-_]+)/);
-      const folderId = match ? match[1] : folderLink;
       const newEventId = "evt_" + Math.random().toString(36).substring(2, 9);
       
       const response = await apiFetch('/api/create-event', {
@@ -375,7 +386,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
         body: JSON.stringify({
           eventId: newEventId,
           folderId,
-          accessToken: authResult?.accessToken || 'public_sync_token',
+          accessToken,
           orgName: orgName || user?.displayName || 'GWC PhotoSync host',
           eventName: eventName,
           coverImage: coverImage
@@ -578,7 +589,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
             <div className="flex justify-center items-center gap-6 sm:gap-10 mb-10 pb-6 border-b border-slate-200/60 shrink-0">
               {[
                 { n: 1, label: 'Event Details' },
-                { n: 2, label: 'Connect Drive' },
+                { n: 2, label: 'Cloud Storage' },
                 { n: 3, label: 'Review & Publish' },
               ].map((s, idx) => (
                 <div key={s.n} className="flex items-center gap-2.5">
@@ -788,19 +799,77 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                       <div>
                         <div className="text-xs font-semibold uppercase tracking-widest text-[#6e2b8b] mb-3">Step 2 of 3</div>
                         <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 leading-[1.05] mb-3">
-                          Connect your <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#6e2b8b] to-[#da7756]">Drive.</span>
+                          Connect your <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#6e2b8b] to-[#da7756]">Cloud Storage.</span>
                         </h2>
                         <p className="text-slate-500 font-medium leading-relaxed max-w-md">
-                          Link a shared Google Drive folder and we’ll sync all photos automatically for face-recognition matching.
+                          Link your cloud folder. All event photos are streamed and matched directly from the cloud without using local server storage.
                         </p>
                       </div>
                       <div className="shrink-0 hidden sm:block">
-                        <img src="/mascot_handshake.png" alt="Drive Sync Partner" className="w-32 h-auto object-contain drop-shadow-md" />
+                        <img src="/mascot_handshake.png" alt="Cloud Partner" className="w-32 h-auto object-contain drop-shadow-md" />
                       </div>
                     </div>
 
+                    {/* Cloud Storage Provider Selector */}
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2.5">
+                        Choose Cloud Storage Provider
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => { setCloudProvider('onedrive'); setFolderLink(''); }}
+                          className={`flex items-center gap-3.5 p-4 rounded-2xl border-2 transition-all cursor-pointer text-left ${
+                            cloudProvider === 'onedrive'
+                              ? 'border-[#0078D4] bg-blue-50/50 shadow-sm ring-2 ring-[#0078D4]/20'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="w-11 h-11 rounded-xl bg-[#0078D4]/10 text-[#0078D4] flex items-center justify-center font-bold text-xl shrink-0">
+                            ☁️
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5 font-bold text-sm text-slate-900">
+                              Microsoft OneDrive
+                              <span className="text-[10px] bg-blue-100 text-[#0078D4] font-bold px-1.5 py-0.5 rounded-full">Recommended</span>
+                            </div>
+                            <div className="text-xs text-slate-500 font-medium">1drv.ms or onedrive.live.com</div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => { setCloudProvider('gdrive'); setFolderLink(''); }}
+                          className={`flex items-center gap-3.5 p-4 rounded-2xl border-2 transition-all cursor-pointer text-left ${
+                            cloudProvider === 'gdrive'
+                              ? 'border-[#6e2b8b] bg-purple-50/50 shadow-sm ring-2 ring-[#6e2b8b]/20'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="w-11 h-11 rounded-xl bg-[#6e2b8b]/10 text-[#6e2b8b] flex items-center justify-center font-bold text-xl shrink-0">
+                            📁
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm text-slate-900">Google Drive</div>
+                            <div className="text-xs text-slate-500 font-medium">drive.google.com folder</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step-by-step guidance */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {[
+                      {cloudProvider === 'onedrive' ? [
+                        { n: '01', title: 'Open OneDrive', body: 'Go to onedrive.live.com and open or create your event folder or album.' },
+                        { n: '02', title: 'Share Folder', body: 'Right-click folder → Share → set access to “Anyone with the link can view”.' },
+                        { n: '03', title: 'Paste Link', body: 'Paste your 1drv.ms/… or OneDrive link below to index cloud photos.' },
+                      ].map((card) => (
+                        <div key={card.n} className="bg-white border border-blue-100 rounded-[1.5rem] p-5 text-slate-900 shadow-sm">
+                          <div className="text-2xl font-bold tracking-tight text-[#0078D4] mb-3">{card.n}</div>
+                          <h4 className="font-semibold text-base mb-1.5">{card.title}</h4>
+                          <p className="text-xs text-slate-500 leading-relaxed font-medium">{card.body}</p>
+                        </div>
+                      )) : [
                         { n: '01', title: 'Open Drive', body: 'Go to drive.google.com and create or open a folder with your event photos.' },
                         { n: '02', title: 'Share Folder', body: 'Right-click the folder → Share → set link access to “Anyone with link can view”.' },
                         { n: '03', title: 'Paste Link', body: 'Copy the folder link and paste it in the field below to connect your gallery.' },
@@ -814,14 +883,27 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-3">Google Drive Folder Link</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-3">
+                        {cloudProvider === 'onedrive' ? 'Microsoft OneDrive Shared Folder Link' : 'Google Drive Folder Link'}
+                      </label>
                       <input 
                         type="text"
                         value={folderLink}
                         onChange={e => setFolderLink(e.target.value)}
-                        className="w-full px-5 py-4 bg-white border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#6e2b8b] font-medium text-sm text-slate-900 placeholder:text-slate-400 transition-colors shadow-sm"
-                        placeholder="https://drive.google.com/drive/folders/…"
+                        className={`w-full px-5 py-4 bg-white border-2 rounded-2xl focus:outline-none font-medium text-sm text-slate-900 placeholder:text-slate-400 transition-colors shadow-sm ${
+                          cloudProvider === 'onedrive'
+                            ? 'border-slate-200 focus:border-[#0078D4] focus:ring-2 focus:ring-[#0078D4]/20'
+                            : 'border-slate-200 focus:border-[#6e2b8b] focus:ring-2 focus:ring-[#6e2b8b]/20'
+                        }`}
+                        placeholder={
+                          cloudProvider === 'onedrive'
+                            ? 'https://1drv.ms/f/s!… or https://onedrive.live.com/…'
+                            : 'https://drive.google.com/drive/folders/…'
+                        }
                       />
+                      <p className="text-xs text-slate-400 font-medium mt-2">
+                        🔒 Stored securely in cloud storage. Local server disk storage is completely bypassed.
+                      </p>
                     </div>
                   </motion.div>
                 )}
@@ -911,7 +993,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                       onClick={handleNextStep1}
                       className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 cursor-pointer"
                     >
-                      Next: Connect Drive <ArrowRight className="w-4 h-4" />
+                      Next: Connect Cloud Storage <ArrowRight className="w-4 h-4" />
                     </button>
                   ) : (
                     <button 
@@ -919,7 +1001,7 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                       disabled={!folderLink || isSyncing}
                       className="bg-gradient-to-r from-[#6e2b8b] to-[#da7756] hover:opacity-95 text-white font-bold text-sm px-7 py-3 rounded-full transition-all shadow-md shadow-purple-950/20 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                     >
-                      {isSyncing ? <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</> : <>Next: Review &amp; Publish <ArrowRight className="w-4 h-4" /></>}
+                      {isSyncing ? <><Loader2 className="w-4 h-4 animate-spin" /> Syncing Cloud Photos…</> : <>Publish Event <ArrowRight className="w-4 h-4" /></>}
                     </button>
                   )}
                 </div>
@@ -1184,10 +1266,10 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                   />
                 </div>
 
-                {/* Google Drive / Folder Link Change */}
+                {/* Cloud Storage Folder Link */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Google Drive Folder Link / Folder ID
+                    Cloud Storage Link (OneDrive or Google Drive)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -1197,12 +1279,12 @@ export function Organizer({ initialView = 'dashboard', onNavigate, onOpenPreview
                       type="text"
                       value={editingEvent.folderId || ''}
                       onChange={e => setEditingEvent(prev => ({ ...prev, folderId: e.target.value }))}
-                      placeholder="https://drive.google.com/drive/folders/... or Folder ID"
+                      placeholder="https://1drv.ms/... or https://drive.google.com/drive/folders/..."
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6e2b8b]"
                     />
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Paste a new Google Drive folder URL or ID to update photo sync.
+                    Paste a new Microsoft OneDrive (1drv.ms/…) or Google Drive link to sync event photos from the cloud.
                   </p>
                 </div>
 

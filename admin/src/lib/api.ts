@@ -1,5 +1,5 @@
 const DEFAULT_PROD_API = 'https://photopic-backend-git-main-arishkumars-projects.vercel.app';
-const API_BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? DEFAULT_PROD_API : '')).replace(/\/+$/, '');
+const API_BASE_URL = DEFAULT_PROD_API;
 
 export function resolveMediaUrl(path: string): string {
   if (!path) return '';
