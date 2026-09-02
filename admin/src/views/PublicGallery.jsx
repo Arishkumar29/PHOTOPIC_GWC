@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2 } from 'lucide-react';
+import { Camera, Download, RefreshCcw, ScanFace, X, ChevronLeft, ChevronRight, Search, Sliders, Undo, Eye, Sparkles, FolderArchive, Loader2, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -277,6 +277,27 @@ export function PublicGallery({ eventData, onBack }) {
     }
   };
 
+  const handleSelfieUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          const photoDataUrl = reader.result;
+          const activeEventId = currentEvent?.eventId || eventData?.eventId || 'evt_sample';
+          setPhoto(photoDataUrl);
+          try {
+            localStorage.setItem('photopic_active_event_id', activeEventId);
+            localStorage.setItem(`photopic_selfie_${activeEventId}`, photoDataUrl);
+          } catch (err) {}
+          stopCamera();
+          findMyPhotos(photoDataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const findMyPhotos = async (photoDataUrl) => {
     setIsScanning(true);
     setScanError(null);
@@ -493,13 +514,21 @@ export function PublicGallery({ eventData, onBack }) {
                   </div>
                 )}
 
-                <button 
-                  onClick={startCamera}
-                  className="group relative overflow-hidden bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white font-extrabold text-lg px-10 py-5 rounded-full hover:opacity-95 shadow-xl shadow-purple-950/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 mx-auto lg:mx-0 cursor-pointer"
-                >
-                  <Camera className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
-                  <span>Take Selfie</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-3.5 mx-auto lg:mx-0 w-full sm:w-auto">
+                  <button 
+                    onClick={startCamera}
+                    className="group relative overflow-hidden bg-gradient-to-r from-[#6e2b8b] to-[#da7756] text-white font-extrabold text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 rounded-full hover:opacity-95 shadow-xl shadow-purple-950/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer w-full sm:w-auto"
+                  >
+                    <Camera className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+                    <span>Take Selfie</span>
+                  </button>
+
+                  <label className="flex items-center justify-center gap-2.5 px-7 py-4 sm:py-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-100 font-bold text-sm sm:text-base transition-all cursor-pointer border border-slate-200/80 dark:border-zinc-700 w-full sm:w-auto shadow-sm">
+                    <Upload className="w-5 h-5 text-slate-500 dark:text-zinc-400" />
+                    <span>Upload Photo</span>
+                    <input type="file" accept="image/*" onChange={handleSelfieUpload} className="hidden" />
+                  </label>
+                </div>
               </div>
 
               {/* Right Column: 3D Mascot Superhero AI Showcase */}
