@@ -804,20 +804,17 @@ export function PublicGallery({ eventData, onBack }) {
                         loading="lazy"
                         onError={(e) => {
                           const target = e.currentTarget;
-                          // If drive proxy endpoint failed, retry with direct Google CDN
+                          // If drive proxy failed, retry direct Google CDN
                           if (target.src.includes('/api/drive-proxy/')) {
                             const parts = target.src.split('/api/drive-proxy/');
                             const fileId = parts[1];
                             if (fileId && !target.src.includes('googleusercontent.com')) {
-                              target.src = `https://lh3.googleusercontent.com/d/${fileId}=w1600`;
+                              target.src = `https://lh3.googleusercontent.com/d/${fileId}=w800`;
                               return;
                             }
                           }
-                          // Fallback: hide unrecoverable corrupted image card smoothly
-                          const card = target.closest('.break-inside-avoid');
-                          if (card) {
-                            card.style.display = 'none';
-                          }
+                          // Never hide the card with display:none — prevent blank screen
+                          target.classList.add('opacity-80');
                         }}
                       />
                       
