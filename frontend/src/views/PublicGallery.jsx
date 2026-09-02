@@ -335,9 +335,11 @@ export function PublicGallery({ eventData, onBack }) {
       }
 
       // ── Step 2: Send to backend ─────────────────────────────────────────────
-      const payload = selfieDescriptor
-        ? { eventId: activeEventId, selfieDescriptor }
-        : { eventId: activeEventId, referenceImage: photoDataUrl };
+      const payload = {
+        eventId: activeEventId,
+        referenceImage: photoDataUrl,
+        selfieDescriptor: selfieDescriptor || undefined
+      };
 
       const response = await apiFetch('/api/scan-faces', {
         method: 'POST',
