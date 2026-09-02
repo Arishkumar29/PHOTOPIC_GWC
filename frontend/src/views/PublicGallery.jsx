@@ -61,7 +61,12 @@ export function PublicGallery({ eventData, onBack }) {
     try {
       const activeId = eventData?.eventId;
       if (activeId && localStorage.getItem('photopic_active_event_id') === activeId) {
-        return localStorage.getItem(`photopic_selfie_${activeId}`) || null;
+        const savedMatches = localStorage.getItem(`photopic_matched_photos_${activeId}`);
+        const savedSelfie = localStorage.getItem(`photopic_selfie_${activeId}`);
+        if (savedSelfie && savedMatches) {
+          const parsed = JSON.parse(savedMatches);
+          if (Array.isArray(parsed) && parsed.length > 0) return savedSelfie;
+        }
       }
       return null;
     } catch {
@@ -74,8 +79,12 @@ export function PublicGallery({ eventData, onBack }) {
     try {
       const activeId = eventData?.eventId;
       if (activeId && localStorage.getItem('photopic_active_event_id') === activeId) {
-        const saved = localStorage.getItem(`photopic_matched_photos_${activeId}`);
-        if (saved) return JSON.parse(saved);
+        const savedMatches = localStorage.getItem(`photopic_matched_photos_${activeId}`);
+        const savedSelfie = localStorage.getItem(`photopic_selfie_${activeId}`);
+        if (savedSelfie && savedMatches) {
+          const parsed = JSON.parse(savedMatches);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
       }
     } catch (e) {}
     return null;
@@ -117,10 +126,29 @@ export function PublicGallery({ eventData, onBack }) {
     }
   };
 
-  // Load active event if not supplied in props
+  // Load active event if not supplied in props or when eventData changes
   useEffect(() => {
     if (eventData?.eventId) {
       setCurrentEvent(eventData);
+      setStream(null);
+      setIsScanning(false);
+      setScanError(null);
+      setCameraError(null);
+      try {
+        const activeId = eventData.eventId;
+        const savedMatches = localStorage.getItem(`photopic_matched_photos_${activeId}`);
+        const savedSelfie = localStorage.getItem(`photopic_selfie_${activeId}`);
+        if (savedSelfie && savedMatches) {
+          const parsed = JSON.parse(savedMatches);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPhoto(savedSelfie);
+            setMatchedPhotos(parsed);
+            return;
+          }
+        }
+      } catch (e) {}
+      setPhoto(null);
+      setMatchedPhotos(null);
     } else {
       apiFetch('/api/events')
         .then(res => res.json())
@@ -131,7 +159,7 @@ export function PublicGallery({ eventData, onBack }) {
         })
         .catch(console.error);
     }
-  }, [eventData]);
+  }, [eventData?.eventId]);
 
   // Auto track visits to backend
   useEffect(() => {
@@ -503,7 +531,7 @@ export function PublicGallery({ eventData, onBack }) {
 
       <main className="max-w-[1400px] mx-auto px-6 py-12">
         {/* Initial state — hero CTA with Scrolling Photo Showcase */}
-        {!photo && !stream && !isScanning && !matchedPhotos && !scanError && (
+        {!stream && !isScanning && !matchedPhotos && !scanError && (
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
